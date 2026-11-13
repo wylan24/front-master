@@ -4,7 +4,7 @@ import {
   type Progress,
   type StageProgress,
 } from "./progress";
-import type { Level, Stage } from "./types";
+import type { Stage } from "./types";
 
 export type StageScore = {
   stage: Stage;
@@ -88,24 +88,10 @@ export function scoreStage(stage: Stage, progress: Progress): StageScore {
   };
 }
 
-export function getGrade(percent: number, level: Level): Grade {
-  const isAdvanced = level === "adv";
-
+/** `topGrade` is the course's own wording for 90% and above in this section. */
+export function getGrade(percent: number, topGrade: Grade): Grade {
   if (percent >= 90) {
-    if (isAdvanced) {
-      return {
-        title: "Array Wizard",
-        emoji: "🧙",
-        message:
-          "Outstanding. You can handle real-world array data confidently.",
-      };
-    }
-    return {
-      title: "Array Master",
-      emoji: "🏆",
-      message:
-        "Excellent. You clearly understand arrays and can use them on your own.",
-    };
+    return topGrade;
   }
 
   if (percent >= 75) {

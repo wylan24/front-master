@@ -65,7 +65,7 @@ export function explainError(error: string): string {
   if (/Assignment to constant/.test(error)) {
     return (
       error +
-      " (a const variable can't be reassigned. Use let, or change the array's contents instead)"
+      " (a const variable can't be reassigned. Use let, or change what's inside the array or object instead)"
     );
   }
   if (/Missing initializer/.test(error)) {

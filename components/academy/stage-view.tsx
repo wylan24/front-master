@@ -6,7 +6,7 @@ import { Panel, PanelHeading } from "./content";
 import { PageHeader } from "./page-header";
 import { Quiz } from "./quiz";
 import { CodeExercise } from "./code-exercise";
-import { LEVELS } from "./course/stages";
+import { LEVELS } from "./course/levels";
 import { isQuizComplete, type StageProgress } from "@/lib/academy/progress";
 import type { Stage } from "@/lib/academy/types";
 
@@ -17,20 +17,19 @@ type StageViewProps = {
   previousStage: Stage | undefined;
   nextStage: Stage | undefined;
   stageProgress: StageProgress;
+  /** The course's message for finishing this section, shown on its final stage. */
+  levelFinishedMessage: string;
   onStageProgressChange: (update: (current: StageProgress) => StageProgress) => void;
   onGoPrevious: () => void;
   onGoNext: () => void;
   onFinishStage: () => void;
 };
 
-function getCompletionMessage(stage: Stage, isLastInLevel: boolean): string {
+function getCompletionMessage(isLastInLevel: boolean, levelFinishedMessage: string): string {
   if (!isLastInLevel) {
     return "Ready for the next one?";
   }
-  if (stage.level === "basic") {
-    return "You've finished the beginner course. You know arrays now. 🎉";
-  }
-  return "You've finished the advanced section. Serious array skills. 🚀";
+  return levelFinishedMessage;
 }
 
 export function StageView({
@@ -40,6 +39,7 @@ export function StageView({
   previousStage,
   nextStage,
   stageProgress,
+  levelFinishedMessage,
   onStageProgressChange,
   onGoPrevious,
   onGoNext,
@@ -104,8 +104,11 @@ export function StageView({
 
   let nextLabel = "";
   if (nextStage) {
-    const crossesIntoAdvanced = nextStage.level !== stage.level;
-    nextLabel = (crossesIntoAdvanced ? "Advanced: " : "") + nextStage.short + " →";
+    const crossesIntoNextSection = nextStage.level !== stage.level;
+    if (crossesIntoNextSection) {
+      nextLabel = LEVELS[nextStage.level].name + ": ";
+    }
+    nextLabel += nextStage.short + " →";
   }
 
   return (
@@ -164,7 +167,7 @@ export function StageView({
           <div>
             <b className="text-[18px]">Stage complete!</b>
             <br />
-            {getCompletionMessage(stage, isLastInLevel)}
+            {getCompletionMessage(isLastInLevel, levelFinishedMessage)}
           </div>
           <Button variant="inverse" onClick={onFinishStage}>
             {isLastInLevel ? "See my results →" : "Next stage →"}

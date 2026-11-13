@@ -13,6 +13,7 @@ const badgeVariants = cva(
         good: "rounded-full bg-good-soft px-2 py-0.5 text-good",
         bad: "rounded-full bg-bad-soft px-2 py-0.5 text-bad",
         info: "rounded-full bg-info-soft px-2 py-0.5 text-info",
+        brand: "rounded-full bg-brand-soft px-2 py-0.5 text-brand-ink",
         tag: "rounded-md bg-primary px-[7px] py-[3px] tracking-[.04em] text-primary-foreground",
       },
     },

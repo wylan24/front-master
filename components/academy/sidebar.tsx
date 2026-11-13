@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
-import { LEVELS } from "./course/stages";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { LEVELS } from "./course/levels";
+import type { Course } from "./course/courses";
 import type { Level, Stage } from "@/lib/academy/types";
 
 const RESET_CONFIRM_TIMEOUT_MILLISECONDS = 3000;
@@ -27,6 +30,7 @@ export type SidebarLevelGroup = {
 };
 
 type SidebarProps = {
+  course: Course;
   groups: SidebarLevelGroup[];
   doneCount: number;
   stageCount: number;
@@ -36,6 +40,7 @@ type SidebarProps = {
 };
 
 export function Sidebar({
+  course,
   groups,
   doneCount,
   stageCount,
@@ -80,14 +85,23 @@ export function Sidebar({
 
   return (
     <aside className="relative border-b border-border bg-card px-4 py-[22px] min-[821px]:sticky min-[821px]:top-0 min-[821px]:h-screen min-[821px]:overflow-auto min-[821px]:border-r min-[821px]:border-b-0">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <Link
+          href="/"
+          className="rounded-sm text-[13px] text-muted-foreground underline-offset-2 hover:text-ink hover:underline focus-visible:ring-3 focus-visible:ring-ring/40 focus-visible:outline-none"
+        >
+          ← All courses
+        </Link>
+        <ThemeToggle />
+      </div>
       <div className="flex items-center gap-2 text-[20px] font-bold tracking-[-.02em]">
-        <span className="rounded-lg bg-ink px-[7px] py-0.5 font-mono text-[15px] text-highlight">
-          [ ]
+        <span className="rounded-lg bg-code px-[7px] py-0.5 font-mono text-[15px] text-highlight">
+          {course.logo}
         </span>{" "}
-        Array Academy
+        {course.title}
       </div>
       <div className="mt-1 mb-[18px] text-[13px] text-muted-foreground">
-        Arrays from zero to advanced, in JavaScript
+        {course.tagline}
       </div>
 
       <Progress value={percentDone} aria-label="Course progress" className="mb-1.5" />
@@ -195,14 +209,14 @@ function NavItem({
       aria-current={isActive ? "page" : undefined}
       className={cn(
         "mb-0.5 flex w-full cursor-pointer items-center gap-[10px] rounded-[10px] px-[10px] py-[9px] text-left text-[14.5px] hover:bg-background",
-        isActive && "bg-ink text-white hover:bg-ink",
+        isActive && "bg-ink text-paper hover:bg-ink",
         isLocked && "opacity-50"
       )}
     >
       <span
         className={cn(
           "grid size-6 flex-none place-items-center rounded-full border-2 border-line font-mono text-[12px]",
-          isActive && "border-white",
+          isActive && "border-paper",
           isDone && "border-good bg-good text-white"
         )}
       >

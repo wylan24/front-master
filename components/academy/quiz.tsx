@@ -67,7 +67,7 @@ function QuizQuestion({
               type="button"
               onClick={() => choose(optionIndex)}
               className={cn(
-                "flex cursor-pointer items-center gap-[10px] rounded-[10px] border-[1.5px] border-border bg-white px-[14px] py-[10px] text-left text-[15px] hover:border-ink",
+                "flex cursor-pointer items-center gap-[10px] rounded-[10px] border-[1.5px] border-border bg-surface px-[14px] py-[10px] text-left text-[15px] hover:border-ink",
                 isChosen && isCorrect && "border-good bg-good-soft hover:border-good",
                 isChosen && !isCorrect && "border-bad bg-bad-soft hover:border-bad"
               )}

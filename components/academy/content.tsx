@@ -145,7 +145,7 @@ export function PlainCode({ children }: { children: ReactNode }) {
 /** A variable readout chip, e.g. `i = 2`. `<b>` renders in the brand colour. */
 export function VariableChip({ children }: { children: ReactNode }) {
   return (
-    <span className="rounded-[10px] border-[1.5px] border-border bg-white px-3 py-1.5 font-mono text-[14px] [&_b]:text-brand">
+    <span className="rounded-[10px] border-[1.5px] border-border bg-surface px-3 py-1.5 font-mono text-[14px] [&_b]:text-brand">
       {children}
     </span>
   );
@@ -161,7 +161,7 @@ export function CheatSheet({ children }: { children: ReactNode }) {
 
 export function Cheat({ code, children }: { code: string; children: ReactNode }) {
   return (
-    <div className="rounded-xl border border-border bg-white px-[14px] py-3 text-[14px]">
+    <div className="rounded-xl border border-border bg-surface px-[14px] py-3 text-[14px]">
       <code className="mb-1 inline-block">{code}</code>
       <br />
       {children}

@@ -11,7 +11,7 @@ function NativeSelect({ className, ...props }: React.ComponentProps<"select">) {
     >
       <select
         data-slot="native-select"
-        className="w-full max-w-full min-w-0 appearance-none rounded-[10px] border-[1.5px] border-input bg-white py-2 pr-8 pl-[10px] font-mono text-[14px] leading-[normal] text-foreground outline-none focus:border-ring disabled:pointer-events-none disabled:opacity-50"
+        className="w-full max-w-full min-w-0 appearance-none rounded-[10px] border-[1.5px] border-input bg-surface py-2 pr-8 pl-[10px] font-mono text-[14px] leading-[normal] text-foreground outline-none focus:border-ring disabled:pointer-events-none disabled:opacity-50"
         {...props}
       />
       <ChevronDownIcon

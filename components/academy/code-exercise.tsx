@@ -127,7 +127,7 @@ export function CodeExercise({
       values = result.values as ExtractedValues;
     }
 
-    const testResults = exercise.tests(values, removeLineComments(code));
+    const testResults = exercise.tests(values, removeLineComments(code), result.logs);
     setChecks(testResults);
 
     const allPassed = testResults.every((testResult) => testResult.passed);

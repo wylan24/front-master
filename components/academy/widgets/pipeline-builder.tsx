@@ -65,7 +65,7 @@ function Chips({ items }: { items: PipelineItem[] }) {
         return (
           <span
             key={index}
-            className="rounded-lg border-[1.5px] border-ink bg-white px-[9px] py-1 font-mono text-[13px]"
+            className="rounded-lg border-[1.5px] border-ink bg-surface px-[9px] py-1 font-mono text-[13px]"
           >
             {item.title}{" "}
             <small className="font-semibold text-brand">

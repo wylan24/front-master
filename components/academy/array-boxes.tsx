@@ -19,7 +19,7 @@ type ArrayBoxesProps = {
 };
 
 const BOX_STATE_CLASS: Record<CellState, string> = {
-  current: "-translate-y-1 bg-highlight shadow-[0_4px_0_var(--ink)]",
+  current: "-translate-y-1 bg-highlight text-highlight-ink shadow-[0_4px_0_var(--ink)]",
   match: "border-good bg-good text-white",
   miss: "border-bad bg-bad text-white",
   dim: "opacity-35",
@@ -45,7 +45,7 @@ export function ArrayBoxes({
       {values.map((value, index) => {
         const state = getCellState ? getCellState(index) : undefined;
         const boxClassName = cn(
-          "grid h-[58px] min-w-[72px] place-items-center rounded-[10px] border-[2.5px] border-ink bg-white px-[10px] font-mono text-[15px] font-semibold transition-all duration-200",
+          "grid h-[58px] min-w-[72px] place-items-center rounded-[10px] border-[2.5px] border-ink bg-surface px-[10px] font-mono text-[15px] font-semibold transition-all duration-200",
           isClickable &&
             "cursor-pointer hover:-translate-y-[3px] hover:shadow-[0_4px_0_var(--ink)]",
           state && BOX_STATE_CLASS[state]

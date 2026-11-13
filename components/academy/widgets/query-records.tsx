@@ -59,13 +59,13 @@ function RecordsTable({
   const cellClassName = "border-b border-border px-[14px] py-1.5 text-left";
 
   return (
-    <table className="my-1.5 mb-[10px] border-collapse overflow-hidden rounded-[10px] border-[1.5px] border-ink bg-white font-mono text-[13.5px]">
+    <table className="my-1.5 mb-[10px] border-collapse overflow-hidden rounded-[10px] border-[1.5px] border-ink bg-surface font-mono text-[13.5px]">
       <thead>
         <tr>
           {["#", "name", "grade", "city"].map((heading) => (
             <th
               key={heading}
-              className={cn(cellClassName, "bg-ink font-semibold text-white")}
+              className={cn(cellClassName, "bg-ink font-semibold text-paper")}
             >
               {heading}
             </th>
@@ -75,7 +75,7 @@ function RecordsTable({
       <tbody>
         {rows.map((student, index) => {
           const isRowOn = highlightedRows?.has(student) ?? false;
-          const rowClassName = cn(cellClassName, isRowOn && "bg-[#fdf0bf]");
+          const rowClassName = cn(cellClassName, isRowOn && "bg-highlight-soft");
           const isGradeOn = highlightGradeOf === student;
 
           return (
@@ -85,7 +85,7 @@ function RecordsTable({
               </td>
               <td className={rowClassName}>{student.name}</td>
               <td
-                className={cn(rowClassName, isGradeOn && "bg-highlight font-bold")}
+                className={cn(rowClassName, isGradeOn && "bg-highlight font-bold text-highlight-ink")}
               >
                 {student.grade}
               </td>

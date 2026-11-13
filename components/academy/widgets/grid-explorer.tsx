@@ -189,11 +189,11 @@ function GridRow({
             type="button"
             onClick={() => onSelectCell(row, column)}
             className={cn(
-              "grid h-14 place-items-center rounded-[10px] border-[2.5px] border-ink bg-white font-mono font-semibold transition-all duration-150 hover:-translate-y-0.5",
+              "grid h-14 place-items-center rounded-[10px] border-[2.5px] border-ink bg-surface font-mono font-semibold transition-all duration-150 hover:-translate-y-0.5",
               isRowSelected && "border-info bg-info-soft",
               isSeen && "bg-good-soft",
               isOn &&
-                "-translate-y-[3px] bg-highlight shadow-[0_4px_0_var(--ink)] hover:-translate-y-[3px]"
+                "-translate-y-[3px] bg-highlight text-highlight-ink shadow-[0_4px_0_var(--ink)] hover:-translate-y-[3px]"
             )}
           >
             {value}

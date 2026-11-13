@@ -10,6 +10,12 @@ const AcademyApp = dynamic(
   { ssr: false }
 );
 
-export function AcademyLoader() {
-  return <AcademyApp />;
+type AcademyLoaderProps = {
+  courseSlug: string;
+};
+
+export function AcademyLoader({ courseSlug }: AcademyLoaderProps) {
+  // Keyed by course so moving between courses starts with that course's own
+  // saved progress instead of keeping the previous course's state.
+  return <AcademyApp key={courseSlug} courseSlug={courseSlug} />;
 }

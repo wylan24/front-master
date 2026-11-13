@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { STAGES } from "./course/stages";
+import { getCourseBySlug, getLevelCopy, type Course } from "./course/courses";
 import { Sidebar, type SidebarLevelGroup } from "./sidebar";
 import { StageView } from "./stage-view";
 import { LockedView } from "./locked-view";
@@ -14,14 +14,18 @@ import {
 } from "./confetti";
 import {
   EMPTY_PROGRESS,
+  getCourseLevels,
+  getNextLevel,
+  getPreviousLevel,
   getStageProgress,
   getStagesForLevel,
   hasStartedStage,
-  isAdvancedUnlocked,
+  isLevelUnlocked,
   isResultsUnlocked,
   isStageDone,
   isStageLocked,
   loadProgress,
+  openLevelsUpTo,
   removeLevelProgress,
   saveProgress,
   withStageProgress,
@@ -34,40 +38,73 @@ type View =
   | { kind: "stage"; stageIndex: number }
   | { kind: "results"; level: Level };
 
-const LEVEL_ORDER: Level[] = ["basic", "adv"];
-
-function findFirstUnfinishedStageIndex(progress: Progress, level: Level): number {
-  return STAGES.findIndex(
+function findFirstUnfinishedStageIndex(
+  stages: Stage[],
+  progress: Progress,
+  level: Level
+): number {
+  return stages.findIndex(
     (stage) => stage.level === level && !isStageDone(stage, progress)
   );
 }
 
-/** Picks up where the learner left off on their last visit. */
-function getResumeView(progress: Progress): View {
-  const beginnerIndex = findFirstUnfinishedStageIndex(progress, "basic");
-  const advancedIndex = findFirstUnfinishedStageIndex(progress, "adv");
-
-  const advancedStages = getStagesForLevel(STAGES, "adv");
-  const hasStartedAdvanced = advancedStages.some((stage) =>
-    hasStartedStage(progress, stage.id)
-  );
-
-  if (hasStartedAdvanced && isAdvancedUnlocked(STAGES, progress)) {
-    if (advancedIndex >= 0) {
-      return { kind: "stage", stageIndex: advancedIndex };
-    }
-    return { kind: "results", level: "adv" };
-  }
-
-  if (beginnerIndex >= 0) {
-    return { kind: "stage", stageIndex: beginnerIndex };
-  }
-  return { kind: "results", level: "basic" };
+function hasStartedLevel(stages: Stage[], progress: Progress, level: Level): boolean {
+  const levelStages = getStagesForLevel(stages, level);
+  return levelStages.some((stage) => hasStartedStage(progress, stage.id));
 }
 
-export function AcademyApp() {
-  const [progress, setProgress] = useState<Progress>(loadProgress);
-  const [view, setView] = useState<View>(() => getResumeView(progress));
+/**
+ * Picks up where the learner left off on their last visit: the furthest
+ * section they have started and can open, at its first unfinished stage.
+ */
+function getResumeView(stages: Stage[], progress: Progress): View {
+  const courseLevels = getCourseLevels(stages);
+  let resumeLevel = courseLevels[0];
+
+  for (const level of courseLevels) {
+    const canOpen = isLevelUnlocked(stages, progress, level);
+    if (canOpen && hasStartedLevel(stages, progress, level)) {
+      resumeLevel = level;
+    }
+  }
+
+  const unfinishedIndex = findFirstUnfinishedStageIndex(stages, progress, resumeLevel);
+  if (unfinishedIndex >= 0) {
+    return { kind: "stage", stageIndex: unfinishedIndex };
+  }
+  return { kind: "results", level: resumeLevel };
+}
+
+/**
+ * Retaking a section clears its progress. Sections after it that are open now
+ * stay open, so a retake never re-locks work the learner has moved on to.
+ */
+function keepLaterLevelsOpen(stages: Stage[], progress: Progress, retakenLevel: Level): Progress {
+  let nextProgress = progress;
+  let laterLevel = getNextLevel(stages, retakenLevel);
+
+  while (laterLevel !== undefined) {
+    if (isLevelUnlocked(stages, nextProgress, laterLevel)) {
+      nextProgress = openLevelsUpTo(stages, nextProgress, laterLevel);
+    }
+    laterLevel = getNextLevel(stages, laterLevel);
+  }
+
+  return nextProgress;
+}
+
+type AcademyAppProps = {
+  courseSlug: string;
+};
+
+export function AcademyApp({ courseSlug }: AcademyAppProps) {
+  // The route has already checked the slug, so the course exists.
+  const course = getCourseBySlug(courseSlug);
+  const stages = course.stages;
+  const storageKey = course.progressStorageKey;
+
+  const [progress, setProgress] = useState<Progress>(() => loadProgress(storageKey));
+  const [view, setView] = useState<View>(() => getResumeView(stages, progress));
   // Bumped on every navigation so the page remounts fresh, even for the same stage.
   const [visitCount, setVisitCount] = useState(0);
   const [confettiBursts, setConfettiBursts] = useState<ConfettiBurst[]>([]);
@@ -79,7 +116,7 @@ export function AcademyApp() {
   function commitProgress(nextProgress: Progress) {
     progressRef.current = nextProgress;
     setProgress(nextProgress);
-    saveProgress(nextProgress);
+    saveProgress(storageKey, nextProgress);
   }
 
   function celebrate() {
@@ -121,45 +158,44 @@ export function AcademyApp() {
 
   // Results for a level only open once its final stage is passed.
   let currentView = view;
-  if (view.kind === "results" && !isResultsUnlocked(STAGES, progress, view.level)) {
+  if (view.kind === "results" && !isResultsUnlocked(stages, progress, view.level)) {
     currentView = { kind: "stage", stageIndex: 0 };
   }
 
-  const sidebarGroups = buildSidebarGroups(progress, currentView);
-  const doneCount = STAGES.filter((stage) => isStageDone(stage, progress)).length;
+  const sidebarGroups = buildSidebarGroups(stages, progress, currentView);
+  const doneCount = stages.filter((stage) => isStageDone(stage, progress)).length;
 
   return (
     <div className="grid min-h-screen grid-cols-1 min-[821px]:grid-cols-[270px_1fr]">
       <Sidebar
+        course={course}
         groups={sidebarGroups}
         doneCount={doneCount}
-        stageCount={STAGES.length}
+        stageCount={stages.length}
         onSelectStage={goToStage}
         onSelectResults={(level) => goTo({ kind: "results", level })}
         onResetProgress={resetAllProgress}
       />
-      <main className="max-w-[980px] px-[clamp(18px,4vw,56px)] pt-[34px] pb-20">
+      <main className="max-w-[980px] min-w-0 px-[clamp(18px,4vw,56px)] pt-[34px] pb-20">
         <MainContent
           key={`${visitCount}`}
+          course={course}
           view={currentView}
           progress={progress}
           onGoToStage={goToStage}
           onGoToResults={(level) => goTo({ kind: "results", level })}
           onUpdateStageProgress={updateStageProgress}
-          onSkipToAdvanced={(stageIndex) => {
-            commitProgress({ ...progressRef.current, skippedToAdvanced: true });
+          onSkipAhead={(stageIndex) => {
+            const lockedLevel = stages[stageIndex].level;
+            commitProgress(openLevelsUpTo(stages, progressRef.current, lockedLevel));
             goToStage(stageIndex);
           }}
           onRetakeLevel={(level) => {
-            let nextProgress = progressRef.current;
-            // Retaking the beginner course shouldn't re-lock an advanced section already open.
-            if (level === "basic" && isAdvancedUnlocked(STAGES, nextProgress)) {
-              nextProgress = { ...nextProgress, skippedToAdvanced: true };
-            }
-            nextProgress = removeLevelProgress(nextProgress, STAGES, level);
+            let nextProgress = keepLaterLevelsOpen(stages, progressRef.current, level);
+            nextProgress = removeLevelProgress(nextProgress, stages, level);
             commitProgress(nextProgress);
-            const firstStage = getStagesForLevel(STAGES, level)[0];
-            goToStage(STAGES.indexOf(firstStage));
+            const firstStage = getStagesForLevel(stages, level)[0];
+            goToStage(stages.indexOf(firstStage));
           }}
         />
       </main>
@@ -169,6 +205,7 @@ export function AcademyApp() {
 }
 
 type MainContentProps = {
+  course: Course;
   view: View;
   progress: Progress;
   onGoToStage: (stageIndex: number) => void;
@@ -177,27 +214,38 @@ type MainContentProps = {
     stage: Stage,
     update: (current: StageProgress) => StageProgress
   ) => void;
-  onSkipToAdvanced: (stageIndex: number) => void;
+  onSkipAhead: (stageIndex: number) => void;
   onRetakeLevel: (level: Level) => void;
 };
 
 function MainContent({
+  course,
   view,
   progress,
   onGoToStage,
   onGoToResults,
   onUpdateStageProgress,
-  onSkipToAdvanced,
+  onSkipAhead,
   onRetakeLevel,
 }: MainContentProps) {
+  const stages = course.stages;
+
   if (view.kind === "results") {
+    const nextLevel = getNextLevel(stages, view.level);
+    let nextLevelFirstStageIndex = -1;
+    if (nextLevel !== undefined) {
+      nextLevelFirstStageIndex = stages.findIndex((stage) => stage.level === nextLevel);
+    }
+
     return (
       <ResultsView
         level={view.level}
-        levelStages={getStagesForLevel(STAGES, view.level)}
+        levelStages={getStagesForLevel(stages, view.level)}
         progress={progress}
-        firstAdvancedStageIndex={STAGES.findIndex((stage) => stage.level === "adv")}
-        getStageIndex={(stage) => STAGES.indexOf(stage)}
+        levelCopy={getLevelCopy(course, view.level)}
+        nextLevel={nextLevel}
+        nextLevelFirstStageIndex={nextLevelFirstStageIndex}
+        getStageIndex={(stage) => stages.indexOf(stage)}
         onGoToStage={onGoToStage}
         onRetake={() => onRetakeLevel(view.level)}
       />
@@ -205,28 +253,37 @@ function MainContent({
   }
 
   const stageIndex = view.stageIndex;
-  const stage = STAGES[stageIndex];
+  const stage = stages[stageIndex];
 
-  if (isStageLocked(stage, STAGES, progress)) {
-    const beginnerStages = getStagesForLevel(STAGES, "basic");
-    const beginnerDoneCount = beginnerStages.filter((s) =>
+  if (isStageLocked(stage, stages, progress)) {
+    // A locked section always has a section before it: the first one is never locked.
+    const requiredLevel = getPreviousLevel(stages, stage.level) ?? stage.level;
+    const requiredStages = getStagesForLevel(stages, requiredLevel);
+    const requiredDoneCount = requiredStages.filter((s) =>
       isStageDone(s, progress)
     ).length;
 
     return (
       <LockedView
-        beginnerDoneCount={beginnerDoneCount}
-        beginnerStageCount={beginnerStages.length}
-        onContinueBeginner={() => {
-          const firstUnfinished = findFirstUnfinishedStageIndex(progress, "basic");
-          onGoToStage(firstUnfinished < 0 ? 0 : firstUnfinished);
+        lockedLevel={stage.level}
+        requiredLevel={requiredLevel}
+        requiredDoneCount={requiredDoneCount}
+        requiredStageCount={requiredStages.length}
+        onContinueRequired={() => {
+          const firstUnfinished = findFirstUnfinishedStageIndex(
+            stages,
+            progress,
+            requiredLevel
+          );
+          const firstRequiredIndex = stages.indexOf(requiredStages[0]);
+          onGoToStage(firstUnfinished < 0 ? firstRequiredIndex : firstUnfinished);
         }}
-        onSkipAhead={() => onSkipToAdvanced(stageIndex)}
+        onSkipAhead={() => onSkipAhead(stageIndex)}
       />
     );
   }
 
-  const levelStages = getStagesForLevel(STAGES, stage.level);
+  const levelStages = getStagesForLevel(stages, stage.level);
   const numberInLevel = levelStages.indexOf(stage) + 1;
   const isLastInLevel = numberInLevel === levelStages.length;
 
@@ -235,9 +292,10 @@ function MainContent({
       stage={stage}
       stageNumber={numberInLevel}
       stageCountInLevel={levelStages.length}
-      previousStage={STAGES[stageIndex - 1]}
-      nextStage={STAGES[stageIndex + 1]}
+      previousStage={stages[stageIndex - 1]}
+      nextStage={stages[stageIndex + 1]}
       stageProgress={getStageProgress(progress, stage.id)}
+      levelFinishedMessage={getLevelCopy(course, stage.level).finishedMessage}
       onStageProgressChange={(update) => onUpdateStageProgress(stage, update)}
       onGoPrevious={() => onGoToStage(stageIndex - 1)}
       onGoNext={() => onGoToStage(stageIndex + 1)}
@@ -252,29 +310,32 @@ function MainContent({
   );
 }
 
-function buildSidebarGroups(progress: Progress, view: View): SidebarLevelGroup[] {
-  const advancedUnlocked = isAdvancedUnlocked(STAGES, progress);
+function buildSidebarGroups(
+  stages: Stage[],
+  progress: Progress,
+  view: View
+): SidebarLevelGroup[] {
   const groups: SidebarLevelGroup[] = [];
 
-  for (const level of LEVEL_ORDER) {
-    const levelStages = getStagesForLevel(STAGES, level);
+  for (const level of getCourseLevels(stages)) {
+    const levelStages = getStagesForLevel(stages, level);
     const items = levelStages.map((stage, indexInLevel) => {
-      const stageIndex = STAGES.indexOf(stage);
+      const stageIndex = stages.indexOf(stage);
       return {
         stage,
         stageIndex,
         numberInLevel: indexInLevel + 1,
         isActive: view.kind === "stage" && view.stageIndex === stageIndex,
         isDone: isStageDone(stage, progress),
-        isLocked: isStageLocked(stage, STAGES, progress),
+        isLocked: isStageLocked(stage, stages, progress),
       };
     });
 
     groups.push({
       level,
-      isLocked: level === "adv" && !advancedUnlocked,
+      isLocked: !isLevelUnlocked(stages, progress, level),
       items,
-      showResultsLink: isResultsUnlocked(STAGES, progress, level),
+      showResultsLink: isResultsUnlocked(stages, progress, level),
       isResultsActive: view.kind === "results" && view.level === level,
     });
   }

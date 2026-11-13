@@ -7,18 +7,25 @@ export type RunResult =
 const TIMEOUT_MILLISECONDS = 2500;
 
 // Runs inside a Web Worker so an infinite loop can be stopped by terminating it.
+// `extract` may evaluate to a Promise (for async lessons); the worker waits for it.
 const WORKER_SOURCE = `
 self.onmessage = (e) => {
   const logs = [];
   const fmt = v => typeof v === 'string' ? JSON.stringify(v) : (Array.isArray(v) ? '[' + v.map(fmt).join(', ') + ']' : (v && typeof v==='object' ? JSON.stringify(v) : String(v)));
   self.console = { log: (...a) => logs.push(a.map(x => typeof x === 'string' ? x : fmt(x)).join(' ')) };
-  try {
-    const fn = new Function(e.data.code + '\\n;return (' + e.data.extract + ');');
-    const vals = fn();
-    self.postMessage({ ok:true, logs, values: JSON.parse(JSON.stringify(vals === undefined ? null : vals, (k,v)=> v===undefined ? '__undef__' : v)) });
-  } catch(err){
-    self.postMessage({ ok:false, logs, error: err.name + ': ' + err.message });
-  }
+  Promise.resolve()
+    .then(() => {
+      const fn = new Function(e.data.code + '\\n;return (' + e.data.extract + ');');
+      return fn();
+    })
+    .then((vals) => {
+      self.postMessage({ ok:true, logs, values: JSON.parse(JSON.stringify(vals === undefined ? null : vals, (k,v)=> v===undefined ? '__undef__' : v)) });
+    })
+    .catch((err) => {
+      const name = err && err.name ? err.name : 'Error';
+      const message = err && err.message !== undefined ? err.message : String(err);
+      self.postMessage({ ok:false, logs, error: name + ': ' + message });
+    });
 };`;
 
 let workerUrl: string | null = null;
@@ -49,7 +56,7 @@ function describeError(error: unknown): string {
  * Fallback for browsers that block workers. It has no infinite-loop
  * protection, which is why the worker is preferred.
  */
-function runInline(code: string, extract: string): RunResult {
+async function runInline(code: string, extract: string): Promise<RunResult> {
   const logs: string[] = [];
   const originalLog = console.log;
 
@@ -63,7 +70,7 @@ function runInline(code: string, extract: string): RunResult {
 
   try {
     const learnerFunction = new Function(code + "\n;return (" + extract + ");");
-    const rawValues = learnerFunction();
+    const rawValues = await learnerFunction();
     const values = JSON.parse(JSON.stringify(rawValues, replaceUndefined));
     return { ok: true, logs, values };
   } catch (error) {
@@ -83,7 +90,7 @@ export function runCode(code: string, extract: string): Promise<RunResult> {
     try {
       worker = new Worker(getWorkerUrl());
     } catch {
-      resolve(runInline(code, extract));
+      runInline(code, extract).then(resolve);
       return;
     }
 

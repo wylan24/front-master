@@ -28,6 +28,18 @@
   --highlight: #f3c64b;
   --highlight-soft: #fdf6dc;
   --body-ink: #3b372f;
+  /* Boxes, inputs and options that sit on top of cards. */
+  --surface: #ffffff;
+  /* Text on the bright yellow highlight: dark in both themes. */
+  --highlight-ink: #1d1b16;
+
+  /* Course difficulty: a fill colour for bars and a darker one for small text. */
+  --difficulty-easy: var(--good);
+  --difficulty-easy-ink: #23704a;
+  --difficulty-medium: var(--highlight);
+  --difficulty-medium-ink: #8a6100;
+  --difficulty-hard: var(--brand);
+  --difficulty-hard-ink: var(--brand-ink);
 
   /* shadcn semantic tokens */
   --background: #f6f3ec;
@@ -49,6 +61,46 @@
   --input: var(--line);
   --ring: var(--ink);
   --radius: 0.625rem;
+
+  color-scheme: light;
+}
+
+/*
+  Dark theme. The inline script in app/layout.tsx sets data-theme on <html>
+  before the first paint, from the saved choice or the system preference.
+  Only the palette changes; every component reads these same tokens.
+*/
+:root[data-theme="dark"] {
+  --paper: #211e1a;
+  --ink: #f2ede1;
+  --line: #3a352d;
+  --brand: #ef7a52;
+  --brand-soft: #3d2419;
+  --brand-ink: #ffb79c;
+  --good: #3a9e66;
+  --good-soft: #183223;
+  --bad: #d65252;
+  --bad-soft: #3b1b1b;
+  --info: #79a2ff;
+  --info-soft: #1b2640;
+  --code: #0f0e0c;
+  --code-ink: #f2ede1;
+  --highlight: #f3c64b;
+  --highlight-soft: #342b13;
+  --body-ink: #d8d1c2;
+  --surface: #2a2621;
+  --highlight-ink: #1d1b16;
+  --difficulty-easy-ink: #74d09d;
+  --difficulty-medium-ink: #f3c64b;
+
+  --background: #171512;
+  --primary-foreground: #171512;
+  --secondary: #2a2621;
+  --muted: #2a2621;
+  --muted-foreground: #a69e8e;
+  --accent: #2a2621;
+
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -92,6 +144,14 @@
   --color-highlight: var(--highlight);
   --color-highlight-soft: var(--highlight-soft);
   --color-body-ink: var(--body-ink);
+  --color-surface: var(--surface);
+  --color-highlight-ink: var(--highlight-ink);
+  --color-difficulty-easy: var(--difficulty-easy);
+  --color-difficulty-easy-ink: var(--difficulty-easy-ink);
+  --color-difficulty-medium: var(--difficulty-medium);
+  --color-difficulty-medium-ink: var(--difficulty-medium-ink);
+  --color-difficulty-hard: var(--difficulty-hard);
+  --color-difficulty-hard-ink: var(--difficulty-hard-ink);
 
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);

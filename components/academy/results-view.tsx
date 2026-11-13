@@ -4,7 +4,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Controls, Panel, PanelHeading, Tip } from "./content";
 import { PageHeader } from "./page-header";
-import { LEVELS } from "./course/stages";
+import { LEVELS } from "./course/levels";
+import type { CourseLevelCopy } from "./course/courses";
 import {
   getGrade,
   getOverallScoreColor,
@@ -24,8 +25,12 @@ type ResultsViewProps = {
   level: Level;
   levelStages: Stage[];
   progress: Progress;
-  /** Index into the full stage list of the first advanced stage. */
-  firstAdvancedStageIndex: number;
+  /** The course's grade wording and next-steps text for this section. */
+  levelCopy: CourseLevelCopy;
+  /** The section after this one, or undefined when this is the course's last section. */
+  nextLevel: Level | undefined;
+  /** Index into the full stage list of the next section's first stage (-1 if none). */
+  nextLevelFirstStageIndex: number;
   getStageIndex: (stage: Stage) => number;
   onGoToStage: (stageIndex: number) => void;
   onRetake: () => void;
@@ -43,7 +48,9 @@ export function ResultsView({
   level,
   levelStages,
   progress,
-  firstAdvancedStageIndex,
+  levelCopy,
+  nextLevel,
+  nextLevelFirstStageIndex,
   getStageIndex,
   onGoToStage,
   onRetake,
@@ -52,7 +59,7 @@ export function ResultsView({
 
   const levelInfo = LEVELS[level];
   const levelNameLower = levelInfo.name.toLowerCase();
-  const isAdvanced = level === "adv";
+  const levelTitleLower = levelInfo.title.toLowerCase();
 
   const scores: StageScore[] = [];
   for (const stage of levelStages) {
@@ -62,7 +69,7 @@ export function ResultsView({
   const overallPercent = Math.round(
     sumOf(scores, (s) => s.score) / scores.length
   );
-  const grade = getGrade(overallPercent, level);
+  const grade = getGrade(overallPercent, levelCopy.topGrade);
 
   const questionTotal = sumOf(scores, (s) => s.questionCount);
   const firstTryTotal = sumOf(scores, (s) => s.firstTryCount);
@@ -90,7 +97,7 @@ export function ResultsView({
       <PageHeader
         eyebrow={`${levelInfo.title} complete`}
         title={`Your ${levelNameLower} results`}
-        lead={`How you did across the ${levelStages.length} ${isAdvanced ? "advanced" : "beginner"} stages. You score higher for answering quizzes right first time and for solving challenges without hints or the solution.`}
+        lead={`How you did across the ${levelStages.length} ${levelNameLower} stages. You score higher for answering quizzes right first time and for solving challenges without hints or the solution.`}
       />
 
       {skippedCount > 0 && (
@@ -192,30 +199,21 @@ export function ResultsView({
         </Panel>
       )}
 
-      {isAdvanced ? (
+      {nextLevel === undefined ? (
         <Panel>
           <PanelHeading tag="NEXT">Where to go from here</PanelHeading>
-          <p>
-            Next, try <code>reduce</code> (folding an array into one value),{" "}
-            <code>flat</code>/<code>flatMap</code>, <code>Array.from</code>, and
-            the non-mutating <code>toSorted</code>/<code>toSpliced</code>. Then
-            practise on real API data.
-          </p>
+          {levelCopy.nextSteps}
         </Panel>
       ) : (
         <Panel>
           <PanelHeading tag="NEXT">Ready for more?</PanelHeading>
-          <p>
-            The <b>advanced section</b> covers find/some/every, slice vs splice,
-            sorting, copies vs references, arrays of objects, 2D grids and
-            method chaining, ending with a leaderboard challenge.
-          </p>
+          {levelCopy.nextSteps}
           <Controls>
             <Button
               variant="brand"
-              onClick={() => onGoToStage(firstAdvancedStageIndex)}
+              onClick={() => onGoToStage(nextLevelFirstStageIndex)}
             >
-              Start the advanced section →
+              Start the {LEVELS[nextLevel].title.toLowerCase()} →
             </Button>
           </Controls>
         </Panel>
@@ -225,7 +223,7 @@ export function ResultsView({
         <Button variant="brand" onClick={handleRetakeClick}>
           {isConfirmingRetake
             ? `Click again to clear ${levelNameLower} progress and retake`
-            : `Retake the ${levelNameLower} ${isAdvanced ? "section" : "course"}`}
+            : `Retake the ${levelTitleLower}`}
         </Button>
         <Button
           variant="outline"

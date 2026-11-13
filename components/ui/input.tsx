@@ -9,7 +9,7 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
       type={type}
       data-slot="input"
       className={cn(
-        "rounded-[10px] border-[1.5px] border-input bg-white px-[10px] py-2 font-mono text-[14px] leading-[normal] text-foreground outline-none placeholder:text-muted-foreground focus:border-ring disabled:pointer-events-none disabled:opacity-50",
+        "rounded-[10px] border-[1.5px] border-input bg-surface px-[10px] py-2 font-mono text-[14px] leading-[normal] text-foreground outline-none placeholder:text-muted-foreground focus:border-ring disabled:pointer-events-none disabled:opacity-50",
         type === "number" && "w-20",
         className
       )}

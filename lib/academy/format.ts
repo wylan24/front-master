@@ -68,6 +68,15 @@ export function explainError(error: string): string {
       " (a const variable can't be reassigned. Use let, or change what's inside the array or object instead)"
     );
   }
+  if (/Cannot assign to read only property|object is not extensible/.test(error)) {
+    return (
+      error +
+      " (props are read-only. Don't change them: calculate a new variable from them instead)"
+    );
+  }
+  if (/toFixed is not a function/.test(error)) {
+    return error + " (toFixed only works on numbers. Was a number passed as text, like price=\"9.99\" instead of price={9.99}?)";
+  }
   if (/Missing initializer/.test(error)) {
     return error + " (a const needs a value after the = sign)";
   }

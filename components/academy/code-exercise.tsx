@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { Controls, Tip } from "./content";
-import { runCode } from "@/lib/academy/run-code";
+import { replayReactCode, runCode, runReactCode, type RunResult } from "@/lib/academy/run-code";
+import type { PreviewAction, PreviewNode } from "@/lib/academy/react-runtime";
+import { ReactPreview } from "./react-preview";
 import { explainError } from "@/lib/academy/format";
 import type { StageProgress } from "@/lib/academy/progress";
 import type { Exercise, ExtractedValues, TestCheck } from "@/lib/academy/types";
@@ -16,6 +18,14 @@ const EDITOR_MIN_HEIGHT_PX = 200;
 type ConsoleOutput = {
   lines: string[];
   error: string | null;
+};
+
+/** The React preview of the last run, which the learner can click and type in. */
+type PreviewSession = {
+  /** The code as it was when Run was pressed; interactions replay against it. */
+  code: string;
+  actions: PreviewAction[];
+  tree: PreviewNode[] | null;
 };
 
 type CodeExerciseProps = {
@@ -52,6 +62,9 @@ export function CodeExercise({
   const [consoleOutput, setConsoleOutput] = useState<ConsoleOutput | null>(null);
   const [checks, setChecks] = useState<TestCheck[] | null>(null);
   const [failedToRun, setFailedToRun] = useState(false);
+  const [previewSession, setPreviewSession] = useState<PreviewSession | null>(null);
+  const [isReplaying, setIsReplaying] = useState(false);
+  const isReactExercise = exercise.runtime === "react";
 
   function updateCode(nextCode: string) {
     setCode(nextCode);
@@ -101,6 +114,43 @@ export function CodeExercise({
     setChecks(null);
     setFailedToRun(false);
     setConsoleOutput(null);
+    setPreviewSession(null);
+  }
+
+  async function runExerciseCode(): Promise<RunResult> {
+    if (!isReactExercise) {
+      return runCode(code, exercise.extract);
+    }
+
+    const reactResult = await runReactCode(code, exercise.extract);
+    if (reactResult.ok) {
+      setPreviewSession({ code, actions: [], tree: reactResult.preview });
+    } else {
+      setPreviewSession(null);
+    }
+    return reactResult;
+  }
+
+  /** Re-runs the last run's code with every preview interaction so far, plus this one. */
+  async function handlePreviewAction(action: PreviewAction) {
+    if (previewSession === null || isReplaying) {
+      return;
+    }
+    const actions = [...previewSession.actions, action];
+    setIsReplaying(true);
+    const result = await replayReactCode(previewSession.code, actions);
+    setIsReplaying(false);
+
+    if (!result.ok) {
+      setConsoleOutput({ lines: result.logs, error: explainError(result.error) });
+      return;
+    }
+    setConsoleOutput({ lines: result.logs, error: null });
+    setPreviewSession({
+      code: previewSession.code,
+      actions,
+      tree: result.values as PreviewNode[] | null,
+    });
   }
 
   async function runAndCheck() {
@@ -112,7 +162,7 @@ export function CodeExercise({
     setChecks(null);
     setFailedToRun(false);
 
-    const result = await runCode(code, exercise.extract);
+    const result = await runExerciseCode();
     setIsRunning(false);
 
     if (!result.ok) {
@@ -168,6 +218,14 @@ export function CodeExercise({
       {isHintVisible && <Tip className="mt-[10px] text-[14.5px]">{exercise.hint}</Tip>}
 
       <ConsolePanel isRunning={isRunning} output={consoleOutput} />
+
+      {isReactExercise && previewSession !== null && (
+        <ReactPreview
+          tree={previewSession.tree}
+          onAction={handlePreviewAction}
+          isBusy={isReplaying}
+        />
+      )}
 
       <div className="mt-[10px] grid gap-1.5">
         {failedToRun && (

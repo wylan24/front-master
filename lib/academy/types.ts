@@ -37,6 +37,13 @@ export type Exercise = {
   tests: (values: ExtractedValues, code: string, logs: string[]) => TestCheck[];
   hint: ReactNode;
   solution: string;
+  /**
+   * "react" runs the code with JSX and a small React runtime (see
+   * lib/academy/react-runtime.ts), and shows a live preview of what the
+   * learner's render(...) call drew. `extract` may then use JSX, render()
+   * and screen. Leave it out for plain JavaScript exercises.
+   */
+  runtime?: "react";
 };
 
 export type Stage = {

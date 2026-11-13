@@ -126,15 +126,7 @@ export function Sidebar({
       >
         {groups.map((group, groupIndex) => (
           <div key={group.level}>
-            <div
-              className={cn(
-                "mx-[10px] mb-1.5 text-[11.5px] font-bold tracking-[.1em] text-muted-foreground uppercase",
-                groupIndex === 0 ? "mt-0" : "mt-4"
-              )}
-            >
-              {LEVELS[group.level].name}
-              {group.isLocked && <span> 🔒</span>}
-            </div>
+            <SectionHeader group={group} isFirst={groupIndex === 0} />
 
             {group.items.map((item, itemIndex) => {
               const previousPart = group.items[itemIndex - 1]?.stage.part;
@@ -184,6 +176,89 @@ export function Sidebar({
         {isConfirmingReset ? "Click again to confirm reset" : "Reset my progress"}
       </button>
     </aside>
+  );
+}
+
+type SectionStyle = {
+  effort: string;
+  /** How many of the five bar segments are filled. */
+  filledSegments: number;
+  fillClass: string;
+  inkClass: string;
+};
+
+// The same wording and colours as the section rows on the course cards
+// (components/catalog/course-progress.tsx), so a section looks the same
+// on the homepage and inside the course.
+const SECTION_STYLE: Record<Level, SectionStyle> = {
+  basic: {
+    effort: "Gentle start",
+    filledSegments: 1,
+    fillClass: "bg-difficulty-easy",
+    inkClass: "text-difficulty-easy-ink",
+  },
+  mid: {
+    effort: "Steady practice",
+    filledSegments: 3,
+    fillClass: "bg-difficulty-medium",
+    inkClass: "text-difficulty-medium-ink",
+  },
+  adv: {
+    effort: "Real challenge",
+    filledSegments: 5,
+    fillClass: "bg-difficulty-hard",
+    inkClass: "text-difficulty-hard-ink",
+  },
+};
+
+const SECTION_SEGMENT_COUNT = 5;
+
+function countDoneItems(group: SidebarLevelGroup): number {
+  let doneCount = 0;
+  for (const item of group.items) {
+    if (item.isDone) {
+      doneCount++;
+    }
+  }
+  return doneCount;
+}
+
+/** A section's name, difficulty and progress, shown above its stages. */
+function SectionHeader({ group, isFirst }: { group: SidebarLevelGroup; isFirst: boolean }) {
+  const style = SECTION_STYLE[group.level];
+  const doneCount = countDoneItems(group);
+
+  const segments: boolean[] = [];
+  for (let index = 0; index < SECTION_SEGMENT_COUNT; index++) {
+    segments.push(index < style.filledSegments);
+  }
+
+  return (
+    <div
+      className={cn(
+        "mx-[10px] mb-2",
+        isFirst ? "mt-0" : "mt-5 border-t border-border pt-4"
+      )}
+    >
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="text-[14px] font-bold">
+          {LEVELS[group.level].name}
+          {group.isLocked && <span aria-label="locked"> 🔒</span>}
+        </span>
+        <span className={cn("text-[12px] font-semibold", style.inkClass)}>{style.effort}</span>
+      </div>
+      <div className="mt-1.5 flex gap-1" aria-hidden="true">
+        {segments.map((isFilled, index) => (
+          <span
+            key={index}
+            className={cn("h-1 flex-1 rounded-full", isFilled ? style.fillClass : "bg-line")}
+          />
+        ))}
+      </div>
+      <div className="mt-1 text-[12px] text-muted-foreground">
+        {doneCount} of {group.items.length} stages
+      </div>
+    </div>
   );
 }
 

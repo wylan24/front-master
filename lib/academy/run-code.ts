@@ -1,4 +1,10 @@
 import { formatValue } from "./format";
+import {
+  buildReactProgram,
+  buildReplayExpression,
+  type PreviewAction,
+  type PreviewNode,
+} from "./react-runtime";
 
 export type RunResult =
   | { ok: true; logs: string[]; values: unknown }
@@ -12,7 +18,8 @@ const WORKER_SOURCE = `
 self.onmessage = (e) => {
   const logs = [];
   const fmt = v => typeof v === 'string' ? JSON.stringify(v) : (Array.isArray(v) ? '[' + v.map(fmt).join(', ') + ']' : (v && typeof v==='object' ? JSON.stringify(v) : String(v)));
-  self.console = { log: (...a) => logs.push(a.map(x => typeof x === 'string' ? x : fmt(x)).join(' ')) };
+  const record = (...a) => logs.push(a.map(x => typeof x === 'string' ? x : fmt(x)).join(' '));
+  self.console = { log: record, warn: record, error: record };
   Promise.resolve()
     .then(() => {
       const fn = new Function(e.data.code + '\\n;return (' + e.data.extract + ');');
@@ -59,14 +66,18 @@ function describeError(error: unknown): string {
 async function runInline(code: string, extract: string): Promise<RunResult> {
   const logs: string[] = [];
   const originalLog = console.log;
+  const originalWarn = console.warn;
 
-  console.log = (...args: unknown[]) => {
+  function recordLog(...args: unknown[]) {
     const parts: string[] = [];
     for (const arg of args) {
       parts.push(typeof arg === "string" ? arg : formatValue(arg));
     }
     logs.push(parts.join(" "));
-  };
+  }
+  console.log = recordLog;
+  // The React course's runtime reports React-style warnings with console.warn.
+  console.warn = recordLog;
 
   try {
     const learnerFunction = new Function(code + "\n;return (" + extract + ");");
@@ -77,6 +88,7 @@ async function runInline(code: string, extract: string): Promise<RunResult> {
     return { ok: false, logs, error: describeError(error) };
   } finally {
     console.log = originalLog;
+    console.warn = originalWarn;
   }
 }
 
@@ -111,4 +123,48 @@ export function runCode(code: string, extract: string): Promise<RunResult> {
 
     worker.postMessage({ code, extract });
   });
+}
+
+export type ReactRunResult =
+  | { ok: true; logs: string[]; values: unknown; preview: PreviewNode[] | null }
+  | { ok: false; logs: string[]; error: string };
+
+type ReactProgramOutput = {
+  preview: PreviewNode[] | null;
+  values: unknown;
+};
+
+async function runReactProgram(code: string, resultExpression: string): Promise<ReactRunResult> {
+  let program: string;
+  try {
+    program = buildReactProgram(code, resultExpression);
+  } catch (error) {
+    // A JSX mistake is found before anything runs, like any syntax error.
+    return { ok: false, logs: [], error: describeError(error) };
+  }
+
+  const result = await runCode(program, "__result");
+  if (!result.ok) {
+    return result;
+  }
+
+  const output = result.values as ReactProgramOutput;
+  return { ok: true, logs: result.logs, values: output.values, preview: output.preview };
+}
+
+/**
+ * Runs React course code (JSX, components, useState) in the sandbox.
+ * `extract` may use JSX, render() and screen; see react-runtime.ts.
+ * `preview` is what the learner's own render(...) call showed, if any.
+ */
+export function runReactCode(code: string, extract: string): Promise<ReactRunResult> {
+  return runReactProgram(code, extract);
+}
+
+/**
+ * Runs the learner's code again from the start and replays what they did in
+ * the preview (clicks, typing), returning the screen afterwards as `values`.
+ */
+export function replayReactCode(code: string, actions: PreviewAction[]): Promise<ReactRunResult> {
+  return runReactProgram(code, buildReplayExpression(actions));
 }

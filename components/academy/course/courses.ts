@@ -7,6 +7,8 @@ import { OBJECT_ACADEMY_STAGES } from "./object-academy/stages";
 import { OBJECT_ACADEMY_LEVEL_COPY } from "./object-academy/copy";
 import { JAVASCRIPT_FOUNDATIONS_STAGES } from "./javascript-foundations/stages";
 import { JAVASCRIPT_FOUNDATIONS_LEVEL_COPY } from "./javascript-foundations/copy";
+import { REACT_FOUNDATIONS_STAGES } from "./react-foundations/stages";
+import { REACT_FOUNDATIONS_LEVEL_COPY } from "./react-foundations/copy";
 
 export type CourseDifficulty =
   | "Beginner"
@@ -89,11 +91,30 @@ const JAVASCRIPT_FOUNDATIONS: Course = {
   levelCopy: JAVASCRIPT_FOUNDATIONS_LEVEL_COPY,
 };
 
+const REACT_FOUNDATIONS: Course = {
+  slug: "react-foundations",
+  title: "React Foundations",
+  tagline: "Learn to think in React, not just write React",
+  description:
+    "Go from understanding the problem React solves to building your first interactive app. JSX, components, props, lists, events and state, taught as one idea: the UI is a description of data. You finish by building Shopfront, a searchable catalogue with a cart.",
+  difficulty: "Beginner to Advanced",
+  logo: "</>",
+  progressStorageKey: "reactFoundations:v1",
+  stages: REACT_FOUNDATIONS_STAGES,
+  levelCopy: REACT_FOUNDATIONS_LEVEL_COPY,
+};
+
 /**
- * Every course, in the order they appear on the homepage. Foundations comes
- * first because the other two assume its basics.
+ * Every course, in the order they appear on the homepage. JavaScript
+ * Foundations comes first because the others assume its basics; React
+ * Foundations comes last because it assumes arrays and objects too.
  */
-export const COURSES: Course[] = [JAVASCRIPT_FOUNDATIONS, ARRAY_ACADEMY, OBJECT_ACADEMY];
+export const COURSES: Course[] = [
+  JAVASCRIPT_FOUNDATIONS,
+  ARRAY_ACADEMY,
+  OBJECT_ACADEMY,
+  REACT_FOUNDATIONS,
+];
 
 export function findCourseBySlug(slug: string): Course | undefined {
   for (const course of COURSES) {

@@ -216,6 +216,77 @@
   .lesson-card p {
     margin: 0 0 12px;
   }
+  /* Plain browser-like defaults for what learners render in the React preview. */
+  .preview-page h1 {
+    margin: 4px 0 8px;
+    font-size: 24px;
+    font-weight: 700;
+  }
+  .preview-page h2 {
+    margin: 4px 0 6px;
+    font-size: 19px;
+    font-weight: 700;
+  }
+  .preview-page h3 {
+    margin: 4px 0 4px;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .preview-page p {
+    margin: 0 0 8px;
+  }
+  .preview-page ul,
+  .preview-page ol {
+    margin: 0 0 8px;
+    padding-left: 22px;
+  }
+  .preview-page ul {
+    list-style: disc;
+  }
+  .preview-page ol {
+    list-style: decimal;
+  }
+  .preview-page article,
+  .preview-page section {
+    margin: 6px 0;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 8px 12px;
+  }
+  .preview-page header,
+  .preview-page footer {
+    margin: 0 0 8px;
+  }
+  .preview-page button {
+    margin: 2px 4px 2px 0;
+    border: 1.5px solid var(--ink);
+    border-radius: 8px;
+    padding: 3px 10px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .preview-page button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  .preview-page input:not([type="checkbox"]):not([type="radio"]),
+  .preview-page textarea,
+  .preview-page select {
+    margin: 2px 4px 2px 0;
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    padding: 3px 8px;
+    font-size: 14px;
+  }
+  .preview-page strong,
+  .preview-page b {
+    font-weight: 700;
+  }
+  .preview-page em,
+  .preview-page i {
+    font-style: italic;
+  }
   .task-box ol {
     margin: 6px 0 0;
     padding-left: 20px;

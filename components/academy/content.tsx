@@ -104,6 +104,18 @@ export function PanelHeading({
   );
 }
 
+/**
+ * A step heading inside a lesson, e.g. "The problem" or "The mental model".
+ * The React course uses these to show its learning cycle.
+ */
+export function StepHeading({ children }: { children: ReactNode }) {
+  return (
+    <h3 className="mt-5 mb-2 text-[13px] font-bold tracking-[.08em] text-brand uppercase first:mt-0">
+      {children}
+    </h3>
+  );
+}
+
 /** Dark one-to-three line output box under the widgets. `<b>` renders yellow. */
 export function Readout({ children }: { children: ReactNode }) {
   return (

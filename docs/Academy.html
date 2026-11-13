@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Array Academy: Arrays from Zero</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f6f3ec; --paper:#fffdf8; --ink:#1d1b16; --muted:#6b665b; --line:#e3ddcf;
+    --accent:#e2603a; --accent-soft:#fbe3d8; --good:#2f8f5b; --good-soft:#dcf1e4;
+    --bad:#c23b3b; --bad-soft:#f8dddd; --blue:#2c5fd6; --blue-soft:#dfe7fb;
+    --code-bg:#1f1d1a; --code-ink:#f2ede1; --yellow:#f3c64b;
+    --mono:'JetBrains Mono', ui-monospace, monospace; --sans:'Space Grotesk', system-ui, sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.55}
+  .app{display:grid;grid-template-columns:270px 1fr;min-height:100vh}
+  aside{background:var(--paper);border-right:1px solid var(--line);padding:22px 16px;position:sticky;top:0;height:100vh;overflow:auto}
+  .brand{font-weight:700;font-size:20px;letter-spacing:-.02em;display:flex;align-items:center;gap:8px}
+  .brand .logo{font-family:var(--mono);background:var(--ink);color:var(--yellow);border-radius:8px;padding:2px 7px;font-size:15px}
+  .sub{color:var(--muted);font-size:13px;margin:4px 0 18px}
+  .progress{height:8px;background:var(--line);border-radius:99px;overflow:hidden;margin-bottom:6px}
+  .progress > div{height:100%;background:var(--accent);width:0;transition:width .4s}
+  .progress-label{font-size:12px;color:var(--muted);margin-bottom:18px}
+  .nav button{all:unset;display:flex;align-items:center;gap:10px;width:100%;box-sizing:border-box;padding:9px 10px;border-radius:10px;cursor:pointer;font-size:14.5px;margin-bottom:2px}
+  .nav button:hover{background:var(--bg)}
+  .nav button.active{background:var(--ink);color:#fff}
+  .nav .dot{width:24px;height:24px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:12px;font-family:var(--mono);flex:none}
+  .nav button.active .dot{border-color:#fff}
+  .nav button.done .dot{background:var(--good);border-color:var(--good);color:#fff}
+  .reset{all:unset;cursor:pointer;font-size:12px;color:var(--muted);margin-top:16px;text-decoration:underline}
+  main{padding:34px clamp(18px,4vw,56px) 80px;max-width:980px}
+  .eyebrow{font-family:var(--mono);font-size:12.5px;color:var(--accent);text-transform:uppercase;letter-spacing:.08em}
+  h1{font-size:clamp(28px,4vw,40px);letter-spacing:-.03em;line-height:1.1;margin:6px 0 10px}
+  h2{font-size:21px;letter-spacing:-.02em;margin:0 0 10px;display:flex;align-items:center;gap:10px}
+  h2 .tag{font-family:var(--mono);font-size:11px;font-weight:600;background:var(--ink);color:#fff;padding:3px 7px;border-radius:6px;letter-spacing:.04em}
+  .lead{font-size:18px;color:#3b372f;max-width:680px}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:22px 24px;margin:20px 0}
+  .card p{margin:0 0 12px}
+  code{font-family:var(--mono);font-size:.9em;background:var(--accent-soft);color:#8a2f14;padding:1px 6px;border-radius:5px}
+  pre{font-family:var(--mono);font-size:14px;background:var(--code-bg);color:var(--code-ink);padding:14px 16px;border-radius:12px;overflow:auto;margin:10px 0 14px;line-height:1.6}
+  pre .c{color:#8f897b} pre .s{color:#a7d98b} pre .n{color:#f3c64b} pre .k{color:#f08a65}
+  .analogy{display:flex;gap:14px;align-items:flex-start;background:var(--blue-soft);border-radius:12px;padding:14px 16px;margin:12px 0}
+  .analogy .ico{font-size:24px;line-height:1}
+  .tip{border-left:4px solid var(--yellow);background:#fdf6dc;padding:10px 14px;border-radius:0 10px 10px 0;margin:12px 0;font-size:15px}
+
+  /* array boxes */
+  .arr{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 6px;min-height:92px;align-items:flex-start}
+  .cell{display:flex;flex-direction:column;align-items:center;gap:6px;animation:pop .28s ease}
+  .box{min-width:72px;height:58px;padding:0 10px;border:2.5px solid var(--ink);border-radius:10px;background:#fff;display:grid;place-items:center;font-family:var(--mono);font-weight:600;font-size:15px;transition:all .2s;cursor:default}
+  .clickable .box{cursor:pointer}
+  .clickable .box:hover{transform:translateY(-3px);box-shadow:0 4px 0 var(--ink)}
+  .idx{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
+  .cell.hl .box{background:var(--yellow);transform:translateY(-4px);box-shadow:0 4px 0 var(--ink)}
+  .cell.hl .idx{color:var(--ink);font-weight:600}
+  .cell.match .box{background:var(--good);color:#fff;border-color:var(--good)}
+  .cell.dim .box{opacity:.35}
+  .cell.out .box{background:var(--blue-soft);border-color:var(--blue)}
+  .empty-arr{font-family:var(--mono);color:var(--muted);padding:18px 0}
+  @keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+  .readout{font-family:var(--mono);background:var(--code-bg);color:var(--code-ink);border-radius:10px;padding:10px 14px;font-size:14px;min-height:42px;white-space:pre-wrap}
+  .readout b{color:var(--yellow);font-weight:600}
+
+  .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0}
+  .btn{all:unset;cursor:pointer;font-family:var(--sans);font-weight:600;font-size:14px;padding:9px 14px;border-radius:10px;background:var(--ink);color:#fff;transition:transform .1s}
+  .btn:hover{transform:translateY(-1px)}
+  .btn:active{transform:translateY(1px)}
+  .btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--ink);padding:7.5px 12.5px}
+  .btn.accent{background:var(--accent)}
+  .btn.mono{font-family:var(--mono);font-weight:600;font-size:13px}
+  .btn[disabled]{opacity:.4;pointer-events:none}
+  input[type=text],input[type=number],select{font-family:var(--mono);font-size:14px;padding:8px 10px;border:1.5px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);outline:none}
+  input:focus,select:focus{border-color:var(--ink)}
+  input[type=number]{width:80px}
+
+  /* quiz */
+  .q{margin:0 0 20px}
+  .q:last-child{margin-bottom:0}
+  .q-title{font-weight:600;margin-bottom:8px}
+  .opts{display:grid;gap:8px}
+  .opt{all:unset;cursor:pointer;border:1.5px solid var(--line);border-radius:10px;padding:10px 14px;background:#fff;font-size:15px;display:flex;gap:10px;align-items:center}
+  .opt:hover{border-color:var(--ink)}
+  .opt .letter{font-family:var(--mono);font-size:12px;width:22px;height:22px;border-radius:6px;background:var(--bg);display:grid;place-items:center;flex:none}
+  .opt.right{border-color:var(--good);background:var(--good-soft)}
+  .opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+  .why{font-size:14.5px;margin-top:8px;padding:8px 12px;border-radius:8px}
+  .why.right{background:var(--good-soft)} .why.wrong{background:var(--bad-soft)}
+
+  /* editor */
+  .task{background:var(--accent-soft);border-radius:12px;padding:12px 16px;margin-bottom:12px}
+  .task ol{margin:6px 0 0;padding-left:20px}
+  .editor{width:100%;min-height:200px;font-family:var(--mono);font-size:14px;line-height:1.6;background:var(--code-bg);color:var(--code-ink);border:none;border-radius:12px;padding:14px 16px;resize:vertical;outline:none;tab-size:2;caret-color:var(--yellow)}
+  .editor:focus{box-shadow:0 0 0 3px var(--yellow)}
+  .console{font-family:var(--mono);font-size:13.5px;background:#2a2723;color:#d9d3c5;border-radius:12px;padding:12px 16px;margin-top:10px;min-height:44px;white-space:pre-wrap}
+  .console .lbl{color:#8f897b;font-size:11px;text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:4px}
+  .console .err{color:#ff8f8f}
+  .results{margin-top:10px;display:grid;gap:6px}
+  .res{font-size:14.5px;padding:8px 12px;border-radius:8px;display:flex;gap:8px}
+  .res.pass{background:var(--good-soft)} .res.fail{background:var(--bad-soft)}
+  .hint{display:none;margin-top:10px;font-size:14.5px}
+  .hint.show{display:block}
+
+  .stage-done{display:none;background:var(--good);color:#fff;border-radius:16px;padding:18px 22px;margin:20px 0;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .stage-done.show{display:flex}
+  .stage-done .btn{background:#fff;color:var(--good)}
+  .checklist{display:flex;gap:16px;flex-wrap:wrap;font-size:14px;color:var(--muted);margin-top:4px}
+  .checklist span.ok{color:var(--good);font-weight:600}
+  .footer-nav{display:flex;justify-content:space-between;margin-top:30px}
+  .loopcode{font-family:var(--mono);font-size:14px;background:var(--code-bg);color:var(--code-ink);border-radius:12px;padding:12px 0;margin:10px 0}
+  .loopcode div{padding:1px 16px;border-left:4px solid transparent}
+  .loopcode div.on{background:#3a352c;border-left-color:var(--yellow)}
+  .vars{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0}
+  .var{font-family:var(--mono);font-size:14px;border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:6px 12px}
+  .var b{color:var(--accent)}
+  .row-label{font-family:var(--mono);font-size:13px;color:var(--muted);margin-top:8px}
+  .cheats{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+  .cheat{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:14px}
+  .cheat code{display:inline-block;margin-bottom:4px}
+  .confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:50}
+  .confetti i{position:absolute;top:-20px;width:10px;height:14px;border-radius:2px;animation:fall 1.8s ease-in forwards}
+  @keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+  .result-hero{display:flex;gap:26px;align-items:center;flex-wrap:wrap}
+  .grade{font-size:26px;font-weight:700;letter-spacing:-.02em}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:20px 0}
+  .stat{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+  .stat .num{font-size:26px;font-weight:700;font-family:var(--mono);letter-spacing:-.03em}
+  .stat .lab{font-size:13px;color:var(--muted)}
+  .rtable{display:grid;gap:2px;font-size:14.5px}
+  .rrow{display:grid;grid-template-columns:1.3fr 1fr 1.6fr 1fr;gap:12px;align-items:center;padding:9px 6px;border-bottom:1px solid var(--line)}
+  .rrow.head{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+  .muted{color:var(--muted)}
+  .sc{display:flex;align-items:center;gap:8px;font-family:var(--mono)}
+  .minibar{flex:1;height:8px;background:var(--line);border-radius:99px;overflow:hidden;min-width:40px}
+  .minibar i{display:block;height:100%}
+  @media (max-width:640px){ .rrow{grid-template-columns:1fr 1fr} .rrow.head{display:none} }
+  .nav-h{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:16px 10px 6px}
+  .nav-h:first-child{margin-top:0}
+  .nav-sub{font-size:12px;color:var(--accent);font-family:var(--mono);margin:8px 10px 4px}
+  .nav button.locked{opacity:.5}
+  .cell.miss .box{background:var(--bad);color:#fff;border-color:var(--bad)}
+  .pill{font-family:var(--mono);font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;vertical-align:middle}
+  .pill.good{background:var(--good-soft);color:var(--good)} .pill.bad{background:var(--bad-soft);color:var(--bad)} .pill.blue{background:var(--blue-soft);color:var(--blue)}
+  .refrow{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin:6px 0}
+  .refname{min-width:170px}
+  table.rec{border-collapse:collapse;font-family:var(--mono);font-size:13.5px;margin:6px 0 10px;background:#fff;border-radius:10px;overflow:hidden;border:1.5px solid var(--ink)}
+  table.rec th,table.rec td{padding:6px 14px;text-align:left;border-bottom:1px solid var(--line)}
+  table.rec th{background:var(--ink);color:#fff;font-weight:600}
+  table.rec td.i{color:var(--muted)}
+  table.rec tr.on td{background:#fdf0bf}
+  table.rec td.cell-on{background:var(--yellow)!important;font-weight:700}
+  .grid2d{display:grid;gap:6px;margin:12px 0;align-items:center}
+  .gl{font-family:var(--mono);font-size:11.5px;color:var(--muted);text-align:center}
+  .gc{height:56px;border:2.5px solid var(--ink);border-radius:10px;background:#fff;display:grid;place-items:center;font-family:var(--mono);font-weight:600;cursor:pointer;transition:all .15s}
+  .gc:hover{transform:translateY(-2px)}
+  .gc.row{background:var(--blue-soft);border-color:var(--blue)}
+  .gc.seen{background:var(--good-soft)}
+  .gc.on{background:var(--yellow);box-shadow:0 4px 0 var(--ink);transform:translateY(-3px)}
+  .pstep{border-left:3px solid var(--accent);padding:6px 0 6px 14px;margin:6px 0}
+  .pstep.off{border-left-color:var(--line);opacity:.55}
+  .pcode{font-family:var(--mono);font-size:13.5px;display:flex;align-items:center;gap:8px;cursor:pointer}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+  .chip{font-family:var(--mono);font-size:13px;background:#fff;border:1.5px solid var(--ink);border-radius:8px;padding:4px 9px}
+  .chip small{color:var(--accent);font-weight:600}
+  .chip.str{background:var(--blue-soft);border-color:var(--blue)}
+  .menu-toggle{display:none}
+  @media (max-width:820px){
+    .app{grid-template-columns:1fr}
+    aside{position:relative;height:auto;border-right:none;border-bottom:1px solid var(--line)}
+    .nav{display:none}
+    aside.open .nav{display:block}
+    .menu-toggle{display:inline-block;margin-bottom:8px}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside id="side">
+    <div class="brand"><span class="logo">[ ]</span> Array Academy</div>
+    <div class="sub">Arrays from zero to advanced, in JavaScript</div>
+    <div class="progress"><div id="bar"></div></div>
+    <div class="progress-label" id="barLabel"></div>
+    <button class="btn ghost menu-toggle" id="menuBtn">Show stages</button>
+    <nav class="nav" id="nav"></nav>
+    <button class="reset" id="resetBtn">Reset my progress</button>
+  </aside>
+  <main id="main"></main>
+</div>
+<div class="confetti" id="confetti"></div>
+
+<script>
+/* ---------- helpers ---------- */
+const $ = (s, el=document) => el.querySelector(s);
+const h = (tag, attrs={}, html='') => { const e=document.createElement(tag); for(const k in attrs){ if(k.startsWith('on')) e.addEventListener(k.slice(2), attrs[k]); else e.setAttribute(k, attrs[k]); } if(html) e.innerHTML=html; return e; };
+const fmt = v => typeof v === 'string' ? `"${v}"` : (Array.isArray(v) ? '[' + v.map(fmt).join(', ') + ']' : (v && typeof v==='object' ? JSON.stringify(v) : String(v)));
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const same = (a,b) => JSON.stringify(a) === JSON.stringify(b);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+function renderBoxes(el, arr, opts={}){
+  el.innerHTML='';
+  el.className = 'arr' + (opts.onClick ? ' clickable' : '');
+  if(!arr.length){ el.innerHTML='<div class="empty-arr">[ ]  ← empty array, length 0</div>'; return; }
+  arr.forEach((v,i)=>{
+    const c = h('div',{class:'cell' + (opts.cls && opts.cls(i) ? ' '+opts.cls(i) : '')});
+    const b = h('div',{class:'box'}, esc(fmt(v)));
+    if(opts.onClick) b.addEventListener('click',()=>opts.onClick(i));
+    c.append(b, h('div',{class:'idx'}, opts.noIndex ? '' : String(i)));
+    el.append(c);
+  });
+}
+
+/* ---------- progress (per-browser convenience only) ---------- */
+let progress = {};
+try { progress = JSON.parse(localStorage.getItem('arrayAcademy') || '{}'); } catch(e){ progress = {}; }
+function save(){ try{ localStorage.setItem('arrayAcademy', JSON.stringify(progress)); }catch(e){} }
+function stageState(id){
+  const st = progress[id] || (progress[id] = {});
+  return Object.assign(st, Object.assign({quiz:{}, qWrong:{}, code:false, draft:null, runs:0, hint:false, sol:false}, st));
+}
+
+/* ---------- sandboxed code runner (Web Worker, with timeout) ---------- */
+const workerSrc = `
+self.onmessage = (e) => {
+  const logs = [];
+  const fmt = v => typeof v === 'string' ? JSON.stringify(v) : (Array.isArray(v) ? '[' + v.map(fmt).join(', ') + ']' : (v && typeof v==='object' ? JSON.stringify(v) : String(v)));
+  self.console = { log: (...a) => logs.push(a.map(x => typeof x === 'string' ? x : fmt(x)).join(' ')) };
+  try {
+    const fn = new Function(e.data.code + '\\n;return (' + e.data.extract + ');');
+    const vals = fn();
+    self.postMessage({ ok:true, logs, vals: JSON.parse(JSON.stringify(vals === undefined ? null : vals, (k,v)=> v===undefined ? '__undef__' : v)) });
+  } catch(err){
+    self.postMessage({ ok:false, logs, error: err.name + ': ' + err.message });
+  }
+};`;
+const workerURL = URL.createObjectURL(new Blob([workerSrc], {type:'text/javascript'}));
+function runCode(code, extract){
+  return new Promise(resolve=>{
+    let w;
+    try { w = new Worker(workerURL); } catch(e){
+      // fallback: run inline (no infinite-loop protection)
+      const logs=[]; const orig=console.log; console.log=(...a)=>logs.push(a.map(x=>typeof x==='string'?x:fmt(x)).join(' '));
+      try{ const vals=new Function(code+'\n;return ('+extract+');')(); console.log=orig; resolve({ok:true,logs,vals:JSON.parse(JSON.stringify(vals,(k,v)=>v===undefined?'__undef__':v))}); }
+      catch(err){ console.log=orig; resolve({ok:false,logs,error:err.name+': '+err.message}); }
+      return;
+    }
+    const t = setTimeout(()=>{ w.terminate(); resolve({ok:false, logs:[], error:'Your code took too long. Is there a loop that never stops?'}); }, 2500);
+    w.onmessage = e => { clearTimeout(t); w.terminate(); resolve(e.data); };
+    w.postMessage({code, extract});
+  });
+}
+const varsExtract = names => '{' + names.map(n => `${n}: (typeof ${n} !== 'undefined' ? ${n} : '__missing__')`).join(', ') + '}';
+const missing = v => v === '__missing__';
+
+/* ---------- course content ---------- */
+const STAGES = [
+/* 1 */ {
+  id:'what', title:'What is an array?', short:'What is an array?',
+  lead:'An array is a single variable that holds an <b>ordered list</b> of values. Instead of making ten separate variables, you keep them together in one.',
+  lesson:`
+    <div class="analogy"><div class="ico">🚃</div><div>Picture a <b>train</b>. The whole train has one name (<code>train</code>), and each carriage holds one thing. The carriages stay in order, and you can add or remove carriages later.</div></div>
+    <p>Without arrays, storing three friends looks like this:</p>
+<pre><span class="k">let</span> friend1 = <span class="s">"Aisha"</span>;
+<span class="k">let</span> friend2 = <span class="s">"Ben"</span>;
+<span class="k">let</span> friend3 = <span class="s">"Chen"</span>;   <span class="c">// what about 100 friends? 😬</span></pre>
+    <p>With an array, it's one variable. Square brackets <code>[ ]</code> make the array, and commas separate the items:</p>
+<pre><span class="k">const</span> friends = [<span class="s">"Aisha"</span>, <span class="s">"Ben"</span>, <span class="s">"Chen"</span>];</pre>
+    <p>An array can hold any kind of value: text (strings), numbers, true/false, even a mix:</p>
+<pre><span class="k">const</span> scores  = [<span class="n">90</span>, <span class="n">72</span>, <span class="n">85</span>];
+<span class="k">const</span> answers = [<span class="k">true</span>, <span class="k">false</span>, <span class="k">true</span>];
+<span class="k">const</span> empty   = [];   <span class="c">// an array with nothing in it (yet)</span></pre>
+    <div class="tip">💡 Text values need quotes (<code>"Ben"</code>). Numbers don't (<code>72</code>). A missing comma or bracket is the most common beginner error.</div>`,
+  widgetTitle:'Build an array',
+  widget(el){
+    let arr = ['Aisha','Ben','Chen'];
+    el.innerHTML = `<p>Type a value and add it. Watch the boxes <em>and</em> the code update together.</p>
+      <div class="controls"><input type="text" id="w1in" placeholder="e.g. Dana or 42" maxlength="12"><button class="btn" id="w1add">Add item</button><button class="btn ghost" id="w1clr">Clear</button></div>
+      <div id="w1arr"></div><div class="readout" id="w1code"></div>`;
+    const draw=()=>{ renderBoxes($('#w1arr',el), arr, {noIndex:true}); $('#w1code',el).innerHTML = 'const myArray = <b>' + esc(fmt(arr)) + '</b>;'; };
+    const add=()=>{ const raw=$('#w1in',el).value.trim(); if(!raw) return; const n=Number(raw); arr.push(raw!=='' && !isNaN(n) ? n : raw); $('#w1in',el).value=''; draw(); };
+    $('#w1add',el).onclick=add; $('#w1in',el).onkeydown=e=>{ if(e.key==='Enter') add(); };
+    $('#w1clr',el).onclick=()=>{arr=[];draw();};
+    draw();
+  },
+  quiz:[
+    {q:'Which line correctly creates an array?', opts:['const pets = "cat", "dog";','const pets = ["cat", "dog"];','const pets = (cat, dog);','const pets = {"cat" "dog"};'], a:1, why:'Arrays use square brackets, with commas between items. Text items go in quotes.'},
+    {q:'What does <code>[]</code> on its own create?', opts:['An error','An array with one item','An empty array','undefined'], a:2, why:'<code>[]</code> is a perfectly valid empty array. You can add items later.'},
+  ],
+  exercise:{
+    task:'Create an array called <code>colors</code> containing exactly <b>three</b> colour names as strings.',
+    starter:`// Create your array below\n\n\nconsole.log(colors);`,
+    extract: varsExtract(['colors']),
+    tests:(v)=>[
+      [!missing(v.colors), 'A variable named colors exists'],
+      [Array.isArray(v.colors), 'colors is an array (uses [ ])'],
+      [Array.isArray(v.colors) && v.colors.length===3, 'colors has exactly 3 items'],
+      [Array.isArray(v.colors) && v.colors.every(x=>typeof x==='string'), 'every item is a string (in quotes)'],
+    ],
+    hint:'Start with <code>const colors = [</code> then three words in quotes separated by commas, then <code>];</code>',
+    solution:`const colors = ["red", "green", "blue"];\n\nconsole.log(colors);`
+  }
+},
+/* 2 */ {
+  id:'index', title:'Indexes: finding items by position', short:'Indexes',
+  lead:'Every item in an array has a position number called its <b>index</b>. You use the index to read a specific item.',
+  lesson:`
+    <div class="analogy"><div class="ico">🏢</div><div>Think of floors in a European building: the first floor you walk into is the <b>ground floor, 0</b>. The one above is 1. Arrays count the same way.</div></div>
+    <p>The most important rule about arrays: <b>counting starts at 0</b>, not 1.</p>
+<pre><span class="k">const</span> fruits = [<span class="s">"apple"</span>, <span class="s">"banana"</span>, <span class="s">"cherry"</span>];
+<span class="c">//  index:          0         1          2</span>
+
+fruits[<span class="n">0</span>]   <span class="c">// "apple"   ← the FIRST item</span>
+fruits[<span class="n">1</span>]   <span class="c">// "banana"</span>
+fruits[<span class="n">2</span>]   <span class="c">// "cherry"  ← the THIRD item</span>
+fruits[<span class="n">3</span>]   <span class="c">// undefined ← nothing there!</span></pre>
+    <p>The pattern is <code>arrayName[index]</code>. Asking for an index that doesn't exist doesn't crash; you just get <code>undefined</code>, which means "no value here".</p>
+    <div class="tip">💡 Quick conversion: the <b>n-th</b> item lives at index <b>n − 1</b>. 3rd item → index 2.</div>`,
+  widgetTitle:'Index explorer',
+  widget(el){
+    const arr=['apple','banana','cherry','date','elderberry'];
+    let sel=null;
+    el.innerHTML=`<p>Click any box, or type an index (try a big number or a negative one).</p>
+      <div class="controls"><code style="background:none;color:var(--ink);padding:0">fruits[</code><input type="number" id="w2in" value="0"><code style="background:none;color:var(--ink);padding:0">]</code><button class="btn" id="w2go">Look up</button></div>
+      <div id="w2arr"></div><div class="readout" id="w2out"></div>`;
+    const draw=()=>{
+      renderBoxes($('#w2arr',el),arr,{onClick:i=>{$('#w2in',el).value=i;look();}, cls:i=>i===sel?'hl':''});
+    };
+    const look=()=>{
+      const i=parseInt($('#w2in',el).value,10); sel=i; draw();
+      const v=arr[i];
+      let note = v===undefined ? `   // no item at index ${i}. The last index is ${arr.length-1}` : `   // item number ${i+1}`;
+      $('#w2out',el).innerHTML = `fruits[${isNaN(i)?'?':i}]  →  <b>${esc(v===undefined?'undefined':fmt(v))}</b>${esc(note)}`;
+    };
+    $('#w2go',el).onclick=look; $('#w2in',el).onkeydown=e=>{if(e.key==='Enter')look();};
+    look();
+  },
+  quiz:[
+    {q:'Given <code>const days = ["Mon", "Tue", "Wed"]</code>, what is <code>days[1]</code>?', opts:['"Mon"','"Tue"','"Wed"','undefined'], a:1, why:'Index 1 is the second item, because index 0 is the first.'},
+    {q:'How do you get the <b>4th</b> item of an array called <code>list</code>?', opts:['list[4]','list(4)','list[3]','list.4'], a:2, why:'4th item → index 4 − 1 = 3.'},
+    {q:'What does <code>days[10]</code> give for the 3-item array above?', opts:['An error that stops the program','undefined','The last item','0'], a:1, why:'Reading past the end returns <code>undefined</code>. JavaScript doesn\'t crash.'},
+  ],
+  exercise:{
+    task:'Using indexes on <code>planets</code> (don\'t type the names yourself!):<ol><li>store the <b>first</b> planet in a variable called <code>first</code></li><li>store the <b>third</b> planet in a variable called <code>third</code></li></ol>',
+    starter:`const planets = ["Mercury", "Venus", "Earth", "Mars"];\n\nconst first = \nconst third = \n\nconsole.log(first, third);`,
+    extract: varsExtract(['first','third']),
+    tests:(v,code)=>[
+      [v.first==='Mercury', 'first is "Mercury"'],
+      [v.third==='Earth', 'third is "Earth"'],
+      [/planets\s*\[\s*0\s*\]/.test(code) && /planets\s*\[\s*2\s*\]/.test(code), 'you used planets[...] indexes to read them'],
+    ],
+    hint:'The first item is at index <code>0</code>; the third is at index <code>2</code>. So: <code>planets[0]</code>.',
+    solution:`const planets = ["Mercury", "Venus", "Earth", "Mars"];\n\nconst first = planets[0];\nconst third = planets[2];\n\nconsole.log(first, third);`
+  }
+},
+/* 3 */ {
+  id:'length', title:'Length & the last item', short:'Length',
+  lead:'<code>.length</code> tells you how many items an array has. It is also the trick for grabbing the last item, however long the array gets.',
+  lesson:`
+<pre><span class="k">const</span> pets = [<span class="s">"cat"</span>, <span class="s">"dog"</span>, <span class="s">"fish"</span>, <span class="s">"owl"</span>];
+pets.length              <span class="c">// 4</span>
+pets[pets.length - <span class="n">1</span>]   <span class="c">// "owl" ← the last item</span></pre>
+    <p>Why <code>length - 1</code>? With 4 items the indexes are 0, 1, 2, 3. Because we start at 0, the last index is <b>always one less</b> than the length.</p>
+    <div class="analogy"><div class="ico">🧮</div><div><b>length</b> answers "how many?"; <b>index</b> answers "which position?". They're off by one because of that zero start.</div></div>
+    <div class="tip">💡 Writing <code>pets[pets.length - 1]</code> instead of <code>pets[3]</code> means your code still works when the array grows or shrinks.</div>`,
+  widgetTitle:'Length visualiser',
+  widget(el){
+    const pool=['cat','dog','fish','owl','frog','yak','emu','bee'];
+    let arr=['cat','dog','fish','owl'];
+    el.innerHTML=`<p>Add and remove items. The last item stays highlighted, and the formula keeps working.</p>
+      <div class="controls"><button class="btn" id="w3add">+ Add item</button><button class="btn ghost" id="w3rem">− Remove item</button></div>
+      <div id="w3arr"></div><div class="readout" id="w3out"></div>`;
+    const draw=()=>{
+      renderBoxes($('#w3arr',el),arr,{cls:i=>i===arr.length-1?'hl':''});
+      const L=arr.length;
+      $('#w3out',el).innerHTML = `pets.length               → <b>${L}</b>\nlast index = length - 1    → <b>${L-1}</b>\npets[pets.length - 1]      → <b>${esc(L?fmt(arr[L-1]):'undefined')}</b>`;
+      $('#w3add',el).disabled = L>=pool.length; $('#w3rem',el).disabled = L===0;
+    };
+    $('#w3add',el).onclick=()=>{arr.push(pool[arr.length]);draw();};
+    $('#w3rem',el).onclick=()=>{arr.pop();draw();};
+    draw();
+  },
+  quiz:[
+    {q:'<code>const a = [5, 10, 15, 20, 25]</code>. What is <code>a.length</code>?', opts:['4','5','25','6'], a:1, why:'There are 5 items. Length counts items; it doesn\'t care about the values.'},
+    {q:'For that same array, what is the <b>last index</b>?', opts:['5','25','4','-1'], a:2, why:'Last index = length − 1 = 4.'},
+    {q:'What is <code>[].length</code>?', opts:['0','undefined','1','-1'], a:0, why:'An empty array has 0 items.'},
+  ],
+  exercise:{
+    task:'Using <code>.length</code>:<ol><li>store how many scores there are in <code>count</code></li><li>store the last score in <code>last</code>, <b>without</b> typing the index number 4 directly</li></ol>',
+    starter:`const scores = [12, 45, 7, 88, 23];\n\nconst count = \nconst last = \n\nconsole.log(count, last);`,
+    extract: varsExtract(['count','last']),
+    tests:(v,code)=>[
+      [v.count===5, 'count is 5'],
+      [v.last===23, 'last is 23'],
+      [/scores\s*\[\s*scores\.length\s*-\s*1\s*\]/.test(code), 'last uses scores[scores.length - 1]'],
+    ],
+    hint:'<code>scores.length</code> gives the count. The last item is at <code>scores.length - 1</code>.',
+    solution:`const scores = [12, 45, 7, 88, 23];\n\nconst count = scores.length;\nconst last = scores[scores.length - 1];\n\nconsole.log(count, last);`
+  }
+},
+/* 4 */ {
+  id:'change', title:'Changing arrays', short:'Changing arrays',
+  lead:'Arrays aren\'t frozen. You can replace items, add to either end, and remove from either end.',
+  lesson:`
+    <p><b>Replace</b> an item by assigning to its index:</p>
+<pre><span class="k">const</span> pets = [<span class="s">"cat"</span>, <span class="s">"dog"</span>];
+pets[<span class="n">1</span>] = <span class="s">"parrot"</span>;   <span class="c">// ["cat", "parrot"]</span></pre>
+    <p><b>Add &amp; remove</b> with four built-in methods:</p>
+<pre>pets.push(<span class="s">"fish"</span>);      <span class="c">// add to the END     → ["cat","parrot","fish"]</span>
+pets.pop();             <span class="c">// remove from END    → ["cat","parrot"]</span>
+pets.unshift(<span class="s">"ant"</span>);    <span class="c">// add to the START   → ["ant","cat","parrot"]</span>
+pets.shift();           <span class="c">// remove from START  → ["cat","parrot"]</span></pre>
+    <div class="analogy"><div class="ico">🥞</div><div><b>push / pop</b> work at the back, like stacking and grabbing the top pancake. <b>unshift / shift</b> work at the front, and every other item's index moves by one.</div></div>
+    <div class="tip">💡 Wait, <code>const</code>? <code>const</code> stops you <i>reassigning the variable</i> (<code>pets = something else</code>). It does <b>not</b> stop you changing what's inside the array.</div>`,
+  widgetTitle:'Mutation playground',
+  widget(el){
+    let arr=['cat','dog','fish']; const pool=['owl','frog','yak','emu','bee','ant','koi','elk']; let pi=0; let flash=-1;
+    el.innerHTML=`<p>Press the buttons and read the line of code each one runs. Watch the index numbers move with shift/unshift.</p>
+      <div class="controls">
+        <button class="btn mono" data-op="push">push()</button><button class="btn mono ghost" data-op="pop">pop()</button>
+        <button class="btn mono" data-op="unshift">unshift()</button><button class="btn mono ghost" data-op="shift">shift()</button>
+      </div>
+      <div class="controls">pets[<input type="number" id="w4i" value="0">] = "<input type="text" id="w4v" value="lion" style="width:110px">" <button class="btn mono accent" data-op="set">assign</button></div>
+      <div id="w4arr"></div><div class="readout" id="w4out">// press a button</div>`;
+    const draw=()=>renderBoxes($('#w4arr',el),arr,{cls:i=>i===flash?'hl':''});
+    el.querySelectorAll('[data-op]').forEach(b=>b.onclick=()=>{
+      const op=b.dataset.op; let line='', ret;
+      if(op==='push'){ const v=pool[pi++%pool.length]; arr.push(v); flash=arr.length-1; line=`pets.push("${v}")`; ret=arr.length; }
+      if(op==='pop'){ ret=arr.pop(); flash=-1; line='pets.pop()'; }
+      if(op==='unshift'){ const v=pool[pi++%pool.length]; arr.unshift(v); flash=0; line=`pets.unshift("${v}")`; ret=arr.length; }
+      if(op==='shift'){ ret=arr.shift(); flash=-1; line='pets.shift()'; }
+      if(op==='set'){ const i=parseInt($('#w4i',el).value,10); const v=$('#w4v',el).value; if(isNaN(i)||i<0||i>9){ $('#w4out',el).textContent='// pick an index from 0 to 9 for this demo'; return; } arr[i]=v; for(let k=0;k<arr.length;k++) if(arr[k]===undefined) arr[k]='(empty)'; flash=i; line=`pets[${i}] = "${v}"`; ret=undefined; }
+      const retTxt = op==='set' ? '' : `\n// returned: ${ret===undefined?'undefined':fmt(ret)}${(op==='push'||op==='unshift')?'  (the new length)':'  (the removed item)'}`;
+      $('#w4out',el).innerHTML = esc(line) + `\n// pets is now <b>${esc(fmt(arr))}</b>` + esc(retTxt);
+      draw();
+    });
+    draw();
+  },
+  quiz:[
+    {q:'Which method adds an item to the <b>end</b> of an array?', opts:['shift()','unshift()','push()','pop()'], a:2, why:'<code>push</code> adds to the end; <code>pop</code> removes from the end.'},
+    {q:'<code>const n = [1, 2, 3]; n.shift();</code>. What is <code>n</code> now?', opts:['[1, 2]','[2, 3]','[1, 2, 3]','Error: n is const'], a:1, why:'<code>shift</code> removes the first item. And yes, it\'s allowed on a <code>const</code> array.'},
+    {q:'<code>const n = [1, 2, 3]; n[0] = 9;</code>. What is <code>n</code>?', opts:['[9, 2, 3]','[1, 9, 2, 3]','[1, 2, 3, 9]','[9]'], a:0, why:'Assigning to an index replaces the item at that position.'},
+  ],
+  exercise:{
+    task:'Do these three steps <b>in order</b> to <code>cart</code>:<ol><li>add <code>"eggs"</code> to the end</li><li>remove the first item</li><li>replace the item at index 0 with <code>"butter"</code></li></ol>The final cart should be <code>["butter", "eggs"]</code>.',
+    starter:`const cart = ["milk", "bread"];\n\n// step 1\n\n// step 2\n\n// step 3\n\n\nconsole.log(cart);`,
+    extract: varsExtract(['cart']),
+    tests:(v,code)=>[
+      [/\.push\s*\(/.test(code), 'used push()'],
+      [/\.shift\s*\(/.test(code), 'used shift()'],
+      [/cart\s*\[\s*0\s*\]\s*=/.test(code), 'assigned with cart[0] = ...'],
+      [same(v.cart,['butter','eggs']), 'cart ends up as ["butter", "eggs"]'],
+    ],
+    hint:'<code>cart.push("eggs")</code>, then <code>cart.shift()</code>, then <code>cart[0] = "butter"</code>. After step 2 the cart is <code>["bread", "eggs"]</code>.',
+    solution:`const cart = ["milk", "bread"];\n\ncart.push("eggs");      // ["milk", "bread", "eggs"]\ncart.shift();           // ["bread", "eggs"]\ncart[0] = "butter";     // ["butter", "eggs"]\n\nconsole.log(cart);`
+  }
+},
+/* 5 */ {
+  id:'loop', title:'Looping through an array', short:'Loops',
+  lead:'Arrays get really useful when you do something to <b>every</b> item. A loop visits each index in turn, so the same code works for 3 items or 3,000.',
+  lesson:`
+    <p>The classic <code>for</code> loop counts through the indexes:</p>
+<pre><span class="k">const</span> prices = [<span class="n">4</span>, <span class="n">10</span>, <span class="n">6</span>];
+<span class="k">let</span> total = <span class="n">0</span>;
+
+<span class="k">for</span> (<span class="k">let</span> i = <span class="n">0</span>; i &lt; prices.length; i++) {
+  total = total + prices[i];
+}
+<span class="c">// total is now 20</span></pre>
+    <p>Read the <code>for</code> line as three parts: <b>start</b> at <code>i = 0</code> · <b>keep going while</b> <code>i &lt; prices.length</code> · <b>after each pass</b> add 1 to <code>i</code>.</p>
+    <p>There's also a shorter loop for when you only need the values, not the index:</p>
+<pre><span class="k">for</span> (<span class="k">const</span> price <span class="k">of</span> prices) {
+  console.log(price);   <span class="c">// 4, then 10, then 6</span>
+}</pre>
+    <div class="tip">💡 Use <code>&lt;</code>, not <code>&lt;=</code>. With <code>i &lt;= prices.length</code> the last pass reads <code>prices[3]</code>, which is <code>undefined</code>. That's the classic "off-by-one" bug.</div>`,
+  widgetTitle:'Loop stepper',
+  widget(el){
+    const arr=[4,10,6,20]; let state;
+    el.innerHTML=`<p>Step through the loop one action at a time and watch <code>i</code> and <code>total</code> change.</p>
+      <div class="loopcode" id="w5code">
+        <div data-l="0">let total = 0;</div>
+        <div data-l="1">for (let i = 0; i &lt; prices.length; i++) {</div>
+        <div data-l="2">&nbsp;&nbsp;total = total + prices[i];</div>
+        <div data-l="3">}</div>
+        <div data-l="4">// done! total = ?</div>
+      </div>
+      <div id="w5arr"></div>
+      <div class="vars" id="w5vars"></div>
+      <div class="controls"><button class="btn" id="w5step">Step ▶</button><button class="btn ghost" id="w5auto">Auto-play</button><button class="btn ghost" id="w5reset">Reset</button></div>
+      <div class="readout" id="w5out"></div>`;
+    const reset=()=>{ state={line:-1,i:null,total:null,done:false,msg:'// press Step to start'}; draw(); };
+    const draw=()=>{
+      el.querySelectorAll('#w5code div').forEach(d=>d.classList.toggle('on', +d.dataset.l===state.line));
+      renderBoxes($('#w5arr',el),arr,{cls:k=> state.i===k && !state.done ? 'hl' : (state.i!==null && k<state.i ? 'match' : '')});
+      $('#w5vars',el).innerHTML = `<span class="var">i = <b>${state.i===null?'–':state.i}</b></span><span class="var">total = <b>${state.total===null?'–':state.total}</b></span><span class="var">prices.length = <b>${arr.length}</b></span>`;
+      $('#w5out',el).innerHTML = state.msg;
+      $('#w5step',el).disabled = state.done;
+    };
+    const step=()=>{
+      const s=state;
+      if(s.line===-1){ s.line=0; s.total=0; s.msg='// total starts at 0'; }
+      else if(s.line===0){ s.line=1; s.i=0; s.msg=`// i = 0. Is 0 &lt; ${arr.length}? <b>yes</b> → go inside`; }
+      else if(s.line===1){ s.line=2; const old=s.total; s.total+=arr[s.i]; s.msg=`// total = ${old} + prices[${s.i}]  →  ${old} + ${arr[s.i]} = <b>${s.total}</b>`; }
+      else if(s.line===2){ s.i++; if(s.i<arr.length){ s.line=1; s.msg=`// i++ → i = ${s.i}. Is ${s.i} &lt; ${arr.length}? <b>yes</b> → go inside`; } else { s.line=3; s.msg=`// i++ → i = ${s.i}. Is ${s.i} &lt; ${arr.length}? <b>no</b> → leave the loop`; } }
+      else if(s.line===3){ s.line=4; s.done=true; s.msg=`// finished. Visited every index. total = <b>${s.total}</b>`; }
+      draw();
+    };
+    let playing=false;
+    $('#w5step',el).onclick=step;
+    $('#w5reset',el).onclick=()=>{playing=false;reset();};
+    $('#w5auto',el).onclick=async()=>{ if(playing) return; playing=true; if(state.done) reset(); while(playing && !state.done){ step(); await sleep(850);} playing=false; };
+    reset();
+  },
+  quiz:[
+    {q:'In <code>for (let i = 0; i &lt; arr.length; i++)</code>, what is <code>i</code> during the <b>first</b> pass?', opts:['1','0','arr.length','undefined'], a:1, why:'<code>let i = 0</code> starts the counter at the first index.'},
+    {q:'An array has 5 items. How many times does that loop body run?', opts:['4','5','6','It depends on the values'], a:1, why:'i goes 0, 1, 2, 3, 4: five passes. At i = 5 the condition is false.'},
+    {q:'Inside the loop, how do you get the current item?', opts:['arr.i','arr[i]','i','arr(i)'], a:1, why:'<code>i</code> is just the position; <code>arr[i]</code> reads the item at that position.'},
+  ],
+  exercise:{
+    task:'Use a <code>for</code> loop to add up every price in <code>prices</code> into <code>total</code>. (Expected: 40.)',
+    starter:`const prices = [4, 10, 6, 20];\nlet total = 0;\n\n// write your loop here\n\n\nconsole.log(total);`,
+    extract: varsExtract(['total']),
+    tests:(v,code)=>[
+      [/\bfor\s*\(/.test(code), 'used a for loop'],
+      [v.total===40, 'total is 40'],
+    ],
+    hint:'<code>for (let i = 0; i &lt; prices.length; i++) { total = total + prices[i]; }</code>. A <code>for...of</code> loop is fine too.',
+    solution:`const prices = [4, 10, 6, 20];\nlet total = 0;\n\nfor (let i = 0; i < prices.length; i++) {\n  total = total + prices[i];\n}\n\nconsole.log(total);`
+  }
+},
+/* 6 */ {
+  id:'search', title:'Searching an array', short:'Searching',
+  lead:'"Is this item in my list?" and "Where is it?" come up constantly. JavaScript has built-in methods that answer them in one line.',
+  lesson:`
+<pre><span class="k">const</span> guests = [<span class="s">"Ana"</span>, <span class="s">"Ben"</span>, <span class="s">"Cy"</span>];
+
+guests.includes(<span class="s">"Ben"</span>)   <span class="c">// true  → is it in there?</span>
+guests.includes(<span class="s">"Zoe"</span>)   <span class="c">// false</span>
+
+guests.indexOf(<span class="s">"Cy"</span>)     <span class="c">// 2     → where is it?</span>
+guests.indexOf(<span class="s">"Zoe"</span>)    <span class="c">// -1    → -1 means "not found"</span></pre>
+    <p>Under the hood, both methods do what you learned in the last stage: they loop from index 0 and compare each item until they find a match.</p>
+    <div class="tip">💡 <code>indexOf</code> returns <code>-1</code> when nothing matches, because <code>-1</code> can never be a real index. Matching is exact, so <code>"ben"</code> ≠ <code>"Ben"</code>.</div>`,
+  widgetTitle:'Watch a search happen',
+  widget(el){
+    const arr=['Ana','Ben','Cy','Dee','Eli','Fay'];
+    el.innerHTML=`<p>Type a name and watch indexOf check each box in turn. Try a name that isn't there, or "ben" in lowercase.</p>
+      <div class="controls">guests.indexOf("<input type="text" id="w6in" value="Dee" style="width:110px">") <button class="btn" id="w6go">Search</button></div>
+      <div id="w6arr"></div><div class="readout" id="w6out">// press Search</div>`;
+    let cur=-1, found=-1, busy=false;
+    const draw=()=>renderBoxes($('#w6arr',el),arr,{cls:i=> i===found?'match' : (i===cur?'hl': (cur>=0 && i<cur ? 'dim':''))});
+    $('#w6go',el).onclick=async()=>{
+      if(busy) return; busy=true; found=-1; const t=$('#w6in',el).value;
+      for(let i=0;i<arr.length;i++){
+        cur=i; draw(); $('#w6out',el).innerHTML = esc(`// checking index ${i}: is "${arr[i]}" === "${t}"? `) + (arr[i]===t?'<b>yes!</b>':'no');
+        await sleep(520);
+        if(arr[i]===t){ found=i; draw(); $('#w6out',el).innerHTML = `guests.indexOf("${esc(t)}")  →  <b>${i}</b>\nguests.includes("${esc(t)}") →  <b>true</b>`; busy=false; return; }
+      }
+      cur=arr.length; draw(); $('#w6out',el).innerHTML = `guests.indexOf("${esc(t)}")  →  <b>-1</b>   // checked every item, no match\nguests.includes("${esc(t)}") →  <b>false</b>`;
+      busy=false;
+    };
+    draw();
+  },
+  quiz:[
+    {q:'<code>["a", "b", "c"].indexOf("b")</code> returns…', opts:['1','2','true','"b"'], a:0, why:'"b" sits at index 1.'},
+    {q:'<code>["a", "b", "c"].indexOf("z")</code> returns…', opts:['undefined','false','-1','0'], a:2, why:'-1 is the "not found" signal.'},
+    {q:'Which method gives you a simple <code>true</code>/<code>false</code> answer?', opts:['indexOf','includes','push','length'], a:1, why:'<code>includes</code> answers yes/no; <code>indexOf</code> answers "where".'},
+  ],
+  exercise:{
+    task:'Using the search methods on <code>guests</code>:<ol><li><code>hasBen</code> should be whether "Ben" is invited (true/false)</li><li><code>cyPosition</code> should be the index of "Cy"</li><li><code>zoePosition</code> should be the index of "Zoe"</li></ol>',
+    starter:`const guests = ["Ana", "Ben", "Cy", "Dee"];\n\nconst hasBen = \nconst cyPosition = \nconst zoePosition = \n\nconsole.log(hasBen, cyPosition, zoePosition);`,
+    extract: varsExtract(['hasBen','cyPosition','zoePosition']),
+    tests:(v,code)=>[
+      [v.hasBen===true && /\.includes\s*\(/.test(code), 'hasBen is true (using includes)'],
+      [v.cyPosition===2 && /\.indexOf\s*\(/.test(code), 'cyPosition is 2 (using indexOf)'],
+      [v.zoePosition===-1, 'zoePosition is -1'],
+    ],
+    hint:'<code>guests.includes("Ben")</code> and <code>guests.indexOf("Cy")</code>.',
+    solution:`const guests = ["Ana", "Ben", "Cy", "Dee"];\n\nconst hasBen = guests.includes("Ben");\nconst cyPosition = guests.indexOf("Cy");\nconst zoePosition = guests.indexOf("Zoe");\n\nconsole.log(hasBen, cyPosition, zoePosition);`
+  }
+},
+/* 7 */ {
+  id:'transform', title:'Transforming: map & filter', short:'map & filter',
+  lead:'Two methods do most of the everyday array work: <code>map</code> changes every item, and <code>filter</code> keeps only the items you want. Both give you a <b>new</b> array and leave the original untouched.',
+  lesson:`
+    <p><b>map</b> runs a function on every item and collects the results. Same length in, same length out:</p>
+<pre><span class="k">const</span> nums = [<span class="n">1</span>, <span class="n">2</span>, <span class="n">3</span>];
+<span class="k">const</span> doubled = nums.map(n =&gt; n * <span class="n">2</span>);   <span class="c">// [2, 4, 6]</span></pre>
+    <p><b>filter</b> runs a true/false test on every item and keeps the ones that pass, so you may get fewer items back:</p>
+<pre><span class="k">const</span> ages = [<span class="n">12</span>, <span class="n">25</span>, <span class="n">17</span>, <span class="n">40</span>];
+<span class="k">const</span> adults = ages.filter(age =&gt; age &gt;= <span class="n">18</span>);   <span class="c">// [25, 40]</span></pre>
+    <div class="analogy"><div class="ico">🏭</div><div><code>n =&gt; n * 2</code> is a tiny function (an "arrow function"). Read it as: <i>"take each item, call it n, give back n × 2."</i> <b>map</b> is a factory line that reshapes every item. <b>filter</b> is a bouncer that lets some items through.</div></div>
+    <div class="tip">💡 You could write both with a <code>for</code> loop and <code>push</code>. map and filter are shorter ways to do that same job.</div>`,
+  widgetTitle:'Transformation machine',
+  widget(el){
+    const arr=[3,8,12,5,20,1];
+    const ops={
+      'map(n => n * 2)':{t:'map',f:n=>n*2}, 'map(n => n + 100)':{t:'map',f:n=>n+100}, 'map(n => n * n)':{t:'map',f:n=>n*n},
+      'filter(n => n > 7)':{t:'filter',f:n=>n>7}, 'filter(n => n % 2 === 0)':{t:'filter',f:n=>n%2===0}, 'filter(n => n < 5)':{t:'filter',f:n=>n<5},
+    };
+    el.innerHTML=`<p>Pick an operation and run it. Notice map keeps the length, while filter can shrink it.</p>
+      <div class="controls">nums.<select id="w7op">${Object.keys(ops).map(k=>`<option>${esc(k)}</option>`).join('')}</select><button class="btn" id="w7go">Run ▶</button></div>
+      <div class="row-label">nums (original)</div><div id="w7in"></div>
+      <div class="row-label">result</div><div id="w7out"></div>
+      <div class="readout" id="w7txt">// choose an operation and press Run</div>`;
+    let active=-1, kept=new Set(), out=[], busy=false;
+    const draw=(mode)=>{
+      renderBoxes($('#w7in',el),arr,{cls:i=> i===active?'hl' : (mode==='filter' && active>i ? (kept.has(i)?'match':'dim') : '')});
+      renderBoxes($('#w7out',el),out,{cls:()=>'out', noIndex:false});
+    };
+    $('#w7go',el).onclick=async()=>{
+      if(busy) return; busy=true;
+      const key=$('#w7op',el).value, op=ops[key]; out=[]; kept=new Set();
+      for(let i=0;i<arr.length;i++){
+        active=i;
+        if(op.t==='map'){ out.push(op.f(arr[i])); $('#w7txt',el).innerHTML=esc(`// item ${arr[i]} → ${op.f(arr[i])}`); }
+        else { const pass=op.f(arr[i]); if(pass){kept.add(i); out.push(arr[i]);} $('#w7txt',el).innerHTML=esc(`// test ${arr[i]} → `)+(pass?'<b>true</b> (keep)':'false (skip)'); }
+        draw(op.t); await sleep(500);
+      }
+      active=arr.length; draw(op.t);
+      $('#w7txt',el).innerHTML = `nums.${esc(key)}\n→ <b>${esc(fmt(out))}</b>   // length ${out.length} (original still has ${arr.length})`;
+      busy=false;
+    };
+    draw();
+  },
+  quiz:[
+    {q:'<code>[1, 2, 3].map(n =&gt; n + 1)</code> returns…', opts:['[2, 3, 4]','[1, 2, 3, 1]','6','[1, 2, 3]'], a:0, why:'map applies <code>n + 1</code> to each item.'},
+    {q:'<code>[5, 15, 25].filter(n =&gt; n &gt; 10)</code> returns…', opts:['[true, true, false]','[15, 25]','[5]','2'], a:1, why:'filter keeps the items that pass the test, not the true/false values.'},
+    {q:'After <code>const b = a.map(...)</code>, what happens to <code>a</code>?', opts:['It becomes b','It gets emptied','It stays exactly the same','It is sorted'], a:2, why:'map and filter return a new array; the original is untouched.'},
+  ],
+  exercise:{
+    task:'Using map and filter on <code>nums</code>:<ol><li><code>doubled</code>: every number × 2</li><li><code>big</code>: only numbers greater than 7</li></ol>',
+    starter:`const nums = [3, 8, 12, 5, 20];\n\nconst doubled = \nconst big = \n\nconsole.log(doubled);\nconsole.log(big);`,
+    extract: varsExtract(['doubled','big','nums']),
+    tests:(v,code)=>[
+      [same(v.doubled,[6,16,24,10,40]) && /\.map\s*\(/.test(code), 'doubled is [6, 16, 24, 10, 40] (using map)'],
+      [same(v.big,[8,12,20]) && /\.filter\s*\(/.test(code), 'big is [8, 12, 20] (using filter)'],
+      [same(v.nums,[3,8,12,5,20]), 'nums itself is unchanged'],
+    ],
+    hint:'<code>nums.map(n =&gt; n * 2)</code> and <code>nums.filter(n =&gt; n &gt; 7)</code>.',
+    solution:`const nums = [3, 8, 12, 5, 20];\n\nconst doubled = nums.map(n => n * 2);\nconst big = nums.filter(n => n > 7);\n\nconsole.log(doubled);\nconsole.log(big);`
+  }
+},
+/* 8 */ {
+  id:'final', title:'Final challenge', short:'Final challenge',
+  lead:'Time to combine it all. You\'ll write a <b>function</b> that takes any array of numbers, so your code has to work for arrays you\'ve never seen.',
+  lesson:`
+    <p>A quick refresher on functions: a function takes inputs (parameters) and gives back a result with <code>return</code>.</p>
+<pre><span class="k">function</span> firstItem(arr) {
+  <span class="k">return</span> arr[<span class="n">0</span>];
+}
+firstItem([<span class="n">7</span>, <span class="n">8</span>, <span class="n">9</span>]);   <span class="c">// 7</span></pre>
+    <h2 style="margin-top:22px">Your cheat sheet</h2>
+    <div class="cheats">
+      <div class="cheat"><code>[a, b, c]</code><br>create an array</div>
+      <div class="cheat"><code>arr[i]</code><br>read item at index i (starts at 0)</div>
+      <div class="cheat"><code>arr.length</code><br>how many items</div>
+      <div class="cheat"><code>arr[arr.length - 1]</code><br>the last item</div>
+      <div class="cheat"><code>push / pop</code><br>add / remove at the end</div>
+      <div class="cheat"><code>unshift / shift</code><br>add / remove at the start</div>
+      <div class="cheat"><code>for (let i = 0; i &lt; arr.length; i++)</code><br>visit every index</div>
+      <div class="cheat"><code>includes / indexOf</code><br>is it there? where? (-1 = no)</div>
+      <div class="cheat"><code>map / filter</code><br>new array: transformed / kept items</div>
+    </div>`,
+  widget:null,
+  quiz:[
+    {q:'<code>const a = [2, 4, 6]; a.push(8); a.shift();</code>. What is <code>a[a.length - 1]</code>?', opts:['6','8','2','4'], a:1, why:'After push: [2,4,6,8]. After shift: [4,6,8]. The last item is 8.'},
+    {q:'Which loop condition has an off-by-one bug?', opts:['i < arr.length','i <= arr.length - 1','i <= arr.length','They\'re all fine'], a:2, why:'<code>i &lt;= arr.length</code> runs one extra time and reads <code>undefined</code> at the end.'},
+  ],
+  exercise:{
+    task:'Write a function <code>summarize(nums)</code> that returns an array of three things: <code>[smallest, largest, sum]</code>.<ol><li><code>summarize([4, 9, 1, 7])</code> → <code>[1, 9, 21]</code></li><li>It must work for any non-empty array of numbers, including negatives.</li><li>Try a loop. Avoid <code>Math.min</code>/<code>Math.max</code> so you practise the logic yourself.</li></ol>',
+    starter:`function summarize(nums) {\n  let smallest = nums[0];\n  let largest = nums[0];\n  let sum = 0;\n\n  // loop over nums and update the three variables\n\n\n  return [smallest, largest, sum];\n}\n\nconsole.log(summarize([4, 9, 1, 7]));`,
+    extract: `{ a: summarize([4, 9, 1, 7]), b: summarize([5]), c: summarize([-3, -10, 0, 8]), d: summarize([2, 2, 2]) }`,
+    tests:(v,code)=>[
+      [v && same(v.a,[1,9,21]), 'summarize([4, 9, 1, 7]) → [1, 9, 21]'],
+      [v && same(v.b,[5,5,5]), 'summarize([5]) → [5, 5, 5]'],
+      [v && same(v.c,[-10,8,-5]), 'summarize([-3, -10, 0, 8]) → [-10, 8, -5]'],
+      [v && same(v.d,[2,2,6]), 'summarize([2, 2, 2]) → [2, 2, 6]'],
+      [!/Math\.(min|max)/.test(code), 'didn\'t use Math.min / Math.max'],
+    ],
+    hint:'Inside a loop: <code>sum = sum + nums[i];</code> then <code>if (nums[i] &lt; smallest) smallest = nums[i];</code> and the same idea with <code>&gt;</code> for largest.',
+    solution:`function summarize(nums) {\n  let smallest = nums[0];\n  let largest = nums[0];\n  let sum = 0;\n\n  for (let i = 0; i < nums.length; i++) {\n    const n = nums[i];\n    sum = sum + n;\n    if (n < smallest) smallest = n;\n    if (n > largest) largest = n;\n  }\n\n  return [smallest, largest, sum];\n}\n\nconsole.log(summarize([4, 9, 1, 7]));`
+  }
+},
+/* ================= ADVANCED · PART 1: POWER TOOLS ================= */
+/* A1 */ {
+  id:'adv-find', level:'adv', part:'Part 1 · Power tools', title:'Asking questions: find, findIndex, some, every', short:'find / some / every',
+  lead:'<code>includes</code> and <code>indexOf</code> only look for an exact value. These four methods take a <b>test function</b> instead, so you can ask questions like "the first temperature above 20?" or "are they <i>all</i> positive?"',
+  lesson:`
+<pre><span class="k">const</span> temps = [<span class="n">12</span>, <span class="n">18</span>, <span class="n">25</span>, <span class="n">31</span>, <span class="n">22</span>];
+
+temps.find(t =&gt; t &gt; <span class="n">20</span>)        <span class="c">// 25    → the first ITEM that passes</span>
+temps.findIndex(t =&gt; t &gt; <span class="n">20</span>)   <span class="c">// 2     → the INDEX of that item</span>
+temps.some(t =&gt; t &gt; <span class="n">30</span>)        <span class="c">// true  → does AT LEAST ONE pass?</span>
+temps.every(t =&gt; t &gt; <span class="n">10</span>)       <span class="c">// true  → do ALL of them pass?</span></pre>
+    <p>When nothing matches: <code>find</code> gives <code>undefined</code>, <code>findIndex</code> gives <code>-1</code>, and <code>some</code> gives <code>false</code>. An empty array is a special case: <code>[].every(...)</code> is <code>true</code>, because nothing failed.</p>
+    <div class="analogy"><div class="ico">🔦</div><div>All four <b>stop early</b>. <code>find</code>/<code>findIndex</code>/<code>some</code> stop at the first item that passes. <code>every</code> stops at the first item that <i>fails</i>, since one failure already settles the answer.</div></div>
+    <div class="tip">💡 <code>find</code> vs <code>filter</code>: <code>find</code> returns <b>one item</b> (the first match), while <code>filter</code> returns an <b>array of all</b> matches.</div>`,
+  widgetTitle:'Watch them stop early',
+  widget(el){
+    const arr=[12,18,25,31,22,-3];
+    const conds={'t => t > 20':t=>t>20,'t => t > 30':t=>t>30,'t => t < 0':t=>t<0,'t => t > 50':t=>t>50,'t => t > -10':t=>t>-10};
+    el.innerHTML=`<p>Pick a method and a test, then run it. Note how many items get checked before it stops.</p>
+      <div class="controls">temps.<select id="a1m"><option>find</option><option>findIndex</option><option>some</option><option>every</option></select>(<select id="a1c">${Object.keys(conds).map(k=>`<option>${esc(k)}</option>`).join('')}</select>) <button class="btn" id="a1go">Run ▶</button></div>
+      <div id="a1arr"></div><div class="readout" id="a1out">// pick a method and a test</div>`;
+    let cur=-1, hit=-1, miss=-1, busy=false;
+    const draw=()=>renderBoxes($('#a1arr',el),arr,{cls:i=> i===hit?'match' : i===miss?'miss' : i===cur?'hl' : (cur>=0 && i<cur?'dim':'')});
+    $('#a1go',el).onclick=async()=>{
+      if(busy) return; busy=true; hit=-1; miss=-1;
+      const m=$('#a1m',el).value, ck=$('#a1c',el).value, f=conds[ck];
+      let res, stopped=-1;
+      for(let i=0;i<arr.length;i++){
+        cur=i; const pass=f(arr[i]); draw();
+        $('#a1out',el).innerHTML=esc(`// test ${arr[i]} → `)+(pass?'<b>true</b>':'false');
+        await sleep(520);
+        if(m!=='every' && pass){ hit=i; stopped=i; res = m==='find'?arr[i] : m==='findIndex'? i : true; break; }
+        if(m==='every' && !pass){ miss=i; stopped=i; res=false; break; }
+      }
+      if(stopped<0){ res = m==='find'?undefined : m==='findIndex'? -1 : m==='some'? false : true; cur=arr.length; }
+      draw();
+      const checked = stopped<0 ? arr.length : stopped+1;
+      $('#a1out',el).innerHTML=`temps.${m}(${esc(ck)})  →  <b>${esc(res===undefined?'undefined':fmt(res))}</b>\n// checked ${checked} of ${arr.length} items${stopped>=0 && checked<arr.length?' (stopped early)':''}`;
+      busy=false;
+    };
+    draw();
+  },
+  quiz:[
+    {q:'<code>[3, 7, 9, 12].find(n =&gt; n &gt; 5)</code> returns…', opts:['[7, 9, 12]','7','1','true'], a:1, why:'find returns the first matching item itself, not an array.'},
+    {q:'<code>[2, 4, 6].every(n =&gt; n % 2 === 0)</code> returns…', opts:['true','false','[2, 4, 6]','3'], a:0, why:'Every item is even, so every gives true.'},
+    {q:'<code>[1, 2, 3].findIndex(n =&gt; n &gt; 10)</code> returns…', opts:['undefined','false','-1','0'], a:2, why:'findIndex uses -1 for "not found", just like indexOf.'},
+  ],
+  exercise:{
+    task:'Using the four methods on <code>ages</code>:<ol><li><code>firstAdult</code>: the first age that is 18 or over (use <code>find</code>)</li><li><code>adultPos</code>: the index of that age (use <code>findIndex</code>)</li><li><code>anyMinor</code>: is any age under 18? (use <code>some</code>)</li><li><code>allTeens</code>: are all ages between 13 and 19? (use <code>every</code>)</li></ol>',
+    starter:`const ages = [14, 17, 21, 16, 30];\n\nconst firstAdult = \nconst adultPos = \nconst anyMinor = \nconst allTeens = \n\nconsole.log(firstAdult, adultPos, anyMinor, allTeens);`,
+    extract: varsExtract(['firstAdult','adultPos','anyMinor','allTeens']),
+    tests:(v,code)=>[
+      [v.firstAdult===21 && /\.find\s*\(/.test(code), 'firstAdult is 21 (using find)'],
+      [v.adultPos===2 && /\.findIndex\s*\(/.test(code), 'adultPos is 2 (using findIndex)'],
+      [v.anyMinor===true && /\.some\s*\(/.test(code), 'anyMinor is true (using some)'],
+      [v.allTeens===false && /\.every\s*\(/.test(code), 'allTeens is false (using every)'],
+    ],
+    hint:'<code>ages.find(a =&gt; a &gt;= 18)</code>. For the last one, combine two conditions: <code>a =&gt; a &gt;= 13 &amp;&amp; a &lt;= 19</code>.',
+    solution:`const ages = [14, 17, 21, 16, 30];\n\nconst firstAdult = ages.find(a => a >= 18);\nconst adultPos = ages.findIndex(a => a >= 18);\nconst anyMinor = ages.some(a => a < 18);\nconst allTeens = ages.every(a => a >= 13 && a <= 19);\n\nconsole.log(firstAdult, adultPos, anyMinor, allTeens);`
+  }
+},
+/* A2 */ {
+  id:'adv-slice', level:'adv', part:'Part 1 · Power tools', title:'slice vs splice, and sorting properly', short:'slice, splice & sort',
+  lead:'Two methods with nearly the same name do very different things, and <code>sort</code> has a famous trap. The key question for every method: <b>does it change the original array?</b>',
+  lesson:`
+    <p><b>slice(start, end)</b> copies part of an array. The <code>end</code> index is <i>not</i> included. The original is untouched:</p>
+<pre><span class="k">const</span> a = [<span class="s">"a"</span>, <span class="s">"b"</span>, <span class="s">"c"</span>, <span class="s">"d"</span>];
+a.slice(<span class="n">1</span>, <span class="n">3</span>)   <span class="c">// ["b", "c"]   a is still ["a","b","c","d"]</span>
+a.slice(-<span class="n">2</span>)     <span class="c">// ["c", "d"]   negative = count from the end</span></pre>
+    <p><b>splice(start, deleteCount, ...newItems)</b> cuts into the original array. It removes and/or inserts items, and returns what it removed:</p>
+<pre>a.splice(<span class="n">1</span>, <span class="n">2</span>)        <span class="c">// returns ["b","c"]; a is now ["a","d"]</span>
+a.splice(<span class="n">1</span>, <span class="n">0</span>, <span class="s">"x"</span>)   <span class="c">// inserts; a is now ["a","x","d"]</span></pre>
+    <p><b>sort()</b> also changes the original. Without a compare function it sorts items <b>as text</b>, so numbers come out wrong:</p>
+<pre>[<span class="n">10</span>, <span class="n">1</span>, <span class="n">5</span>].sort()                  <span class="c">// [1, 10, 5]  😱 "10" comes before "5" as text</span>
+[<span class="n">10</span>, <span class="n">1</span>, <span class="n">5</span>].sort((a, b) =&gt; a - b)    <span class="c">// [1, 5, 10]  low → high</span>
+[<span class="n">10</span>, <span class="n">1</span>, <span class="n">5</span>].sort((a, b) =&gt; b - a)    <span class="c">// [10, 5, 1]  high → low</span></pre>
+    <div class="analogy"><div class="ico">✂️</div><div><b>slice</b> is a photocopier: it copies a section and leaves the original alone. <b>splice</b> is scissors and glue: it changes the actual page.</div></div>
+    <div class="tip">💡 To sort without touching the original, sort a copy: <code>[...nums].sort((a, b) =&gt; a - b)</code>. You'll see what <code>...</code> does in the next stage.</div>`,
+  widgetTitle:'Mutation detector',
+  widget(el){
+    const start=[10,1,5,40,3]; let arr=[...start];
+    const ops={
+      'slice(1, 3)':a=>a.slice(1,3), 'slice(-2)':a=>a.slice(-2),
+      'splice(1, 2)':a=>a.splice(1,2), 'splice(1, 0, 99)':a=>a.splice(1,0,99),
+      'sort()':a=>a.sort(), 'sort((a, b) => a - b)':a=>a.sort((x,y)=>x-y), 'sort((a, b) => b - a)':a=>a.sort((x,y)=>y-x),
+    };
+    el.innerHTML=`<p>Run a method and see whether the original array changed. Use Reset to start over.</p>
+      <div class="controls">${Object.keys(ops).map(k=>`<button class="btn mono ${k.startsWith('slice')?'ghost':''}" data-op="${esc(k)}">${esc(k)}</button>`).join('')}<button class="btn accent" id="a2reset">Reset</button></div>
+      <div class="row-label">nums before</div><div id="a2before"></div>
+      <div class="row-label">nums after <span id="a2tag"></span></div><div id="a2after"></div>
+      <div class="row-label">returned value</div><div id="a2ret"></div>
+      <div class="readout" id="a2out">// nums = ${fmt(start)}</div>`;
+    const blank=()=>{ $('#a2before',el).innerHTML=''; renderBoxes($('#a2after',el),arr); $('#a2ret',el).innerHTML='<div class="empty-arr">–</div>'; $('#a2tag',el).innerHTML=''; };
+    el.querySelectorAll('[data-op]').forEach(b=>b.onclick=()=>{
+      const k=b.dataset.op, before=[...arr]; const ret=ops[k](arr); const changed=!same(before,arr);
+      renderBoxes($('#a2before',el),before,{cls:()=>'dim'});
+      renderBoxes($('#a2after',el),arr,{cls:()=>changed?'hl':''});
+      renderBoxes($('#a2ret',el),ret,{cls:()=>'out'});
+      $('#a2tag',el).innerHTML = changed ? '<span class="pill bad">CHANGED</span>' : '<span class="pill good">UNCHANGED</span>';
+      $('#a2out',el).innerHTML = `nums.${esc(k)}\n// returned <b>${esc(fmt(ret))}</b>${ret===arr?'  (the same array, not a copy)':''}\n// nums is now <b>${esc(fmt(arr))}</b>`;
+    });
+    $('#a2reset',el).onclick=()=>{ arr=[...start]; blank(); $('#a2out',el).textContent='// nums = '+fmt(start); };
+    blank();
+  },
+  quiz:[
+    {q:'Does <code>slice</code> change the original array?', opts:['Yes, always','No, it returns a new array','Only with negative numbers','Only if you pass two arguments'], a:1, why:'slice only copies. splice is the one that changes the original.'},
+    {q:'<code>[10, 1, 5].sort()</code> returns…', opts:['[1, 5, 10]','[10, 5, 1]','[1, 10, 5]','An error'], a:2, why:'Without a compare function, items are compared as text, and "10" comes before "5".'},
+    {q:'<code>const a = ["x", "y", "z"]; a.splice(1, 1);</code>. What is <code>a</code> now?', opts:['["x", "z"]','["y"]','["x", "y", "z"]','["z"]'], a:0, why:'splice(1, 1) removes 1 item starting at index 1 ("y"), changing a itself. It returns ["y"].'},
+  ],
+  exercise:{
+    task:'<ol><li><code>middle</code>: a <b>copy</b> of "b", "c", "d" from <code>letters</code>, using <code>slice</code></li><li>Then remove <code>"c"</code> from <code>letters</code> itself using <code>splice</code>, so letters becomes <code>["a","b","d","e"]</code></li><li>Sort <code>nums</code> numerically from low to high using <code>sort</code> with a compare function</li></ol>',
+    starter:`const letters = ["a", "b", "c", "d", "e"];\nconst nums = [40, 100, 1, 5, 25];\n\nconst middle = \n\n// remove "c" from letters\n\n// sort nums low → high\n\n\nconsole.log(middle, letters, nums);`,
+    extract: varsExtract(['middle','letters','nums']),
+    tests:(v,code)=>[
+      [same(v.middle,['b','c','d']) && /\.slice\s*\(/.test(code), 'middle is ["b", "c", "d"] (using slice)'],
+      [same(v.letters,['a','b','d','e']) && /\.splice\s*\(/.test(code), 'letters is ["a", "b", "d", "e"] (using splice)'],
+      [same(v.nums,[1,5,25,40,100]), 'nums is [1, 5, 25, 40, 100]'],
+      [/\.sort\s*\(\s*\(?\s*\w+\s*,\s*\w+/.test(code), 'sort uses a compare function'],
+    ],
+    hint:'<code>letters.slice(1, 4)</code>: remember the end index isn\'t included. "c" is at index 2, so <code>letters.splice(2, 1)</code>. Then <code>nums.sort((a, b) =&gt; a - b)</code>.',
+    solution:`const letters = ["a", "b", "c", "d", "e"];\nconst nums = [40, 100, 1, 5, 25];\n\nconst middle = letters.slice(1, 4);\n\n// remove "c" from letters\nletters.splice(2, 1);\n\n// sort nums low → high\nnums.sort((a, b) => a - b);\n\nconsole.log(middle, letters, nums);`
+  }
+},
+/* A3 */ {
+  id:'adv-copy', level:'adv', part:'Part 1 · Power tools', title:'Copies vs references, spread & destructuring', short:'Copies & spread',
+  lead:'This is the concept behind a lot of confusing bugs: <b>assigning an array to a new variable does not copy it</b>. Both names point at the same array.',
+  lesson:`
+<pre><span class="k">const</span> a = [<span class="n">1</span>, <span class="n">2</span>, <span class="n">3</span>];
+<span class="k">const</span> b = a;        <span class="c">// NOT a copy: b points at the same array</span>
+b.push(<span class="n">4</span>);
+console.log(a);     <span class="c">// [1, 2, 3, 4]  😮 a changed too!</span></pre>
+    <div class="analogy"><div class="ico">🏠</div><div>A variable doesn't hold the array itself; it holds the array's <b>address</b>. <code>const b = a</code> copies the address, so now two people have the key to <i>the same house</i>. Rearrange the furniture through <code>b</code>, and <code>a</code> sees it too.</div></div>
+    <p>To make a <b>real copy</b>, use the spread operator <code>...</code>, which "spreads out" the items into a brand-new array:</p>
+<pre><span class="k">const</span> c = [...a];           <span class="c">// a new array with the same items</span>
+<span class="k">const</span> both = [...a, ...[<span class="n">9</span>, <span class="n">8</span>]];  <span class="c">// merge arrays: [1, 2, 3, 4, 9, 8]</span>
+[<span class="n">1</span>, <span class="n">2</span>] === [<span class="n">1</span>, <span class="n">2</span>]          <span class="c">// false: two different arrays, two different addresses</span></pre>
+    <p><b>Destructuring</b> unpacks items into variables by position:</p>
+<pre><span class="k">const</span> [first, second] = [<span class="s">"gold"</span>, <span class="s">"silver"</span>, <span class="s">"bronze"</span>];   <span class="c">// "gold", "silver"</span>
+<span class="k">const</span> [winner, ...rest] = [<span class="s">"gold"</span>, <span class="s">"silver"</span>, <span class="s">"bronze"</span>]; <span class="c">// rest = ["silver", "bronze"]</span>
+<span class="k">let</span> x = <span class="n">1</span>, y = <span class="n">2</span>;
+[x, y] = [y, x];   <span class="c">// swap! x = 2, y = 1</span></pre>
+    <div class="tip">💡 In React, state updates rely on this. <code>setItems([...items, newItem])</code> creates a new array so React notices the change. <code>items.push(newItem)</code> keeps the same address, so React may not re-render.</div>`,
+  widgetTitle:'Same array or a copy?',
+  widget(el){
+    let a, b, ids, nextId, log;
+    el.innerHTML=`<p>First create <code>b</code> one of two ways, then change it and look at <code>a</code>.</p>
+      <div class="controls"><button class="btn mono" id="a3ref">const b = a</button><button class="btn mono" id="a3copy">const b = [...a]</button><button class="btn accent" id="a3reset">Reset</button></div>
+      <div class="controls"><button class="btn mono ghost" id="a3push" disabled>b.push(4)</button><button class="btn mono ghost" id="a3set" disabled>b[0] = 99</button></div>
+      <div id="a3vars"></div><div class="readout" id="a3out"></div>`;
+    const idOf=arr=>{ if(!ids.has(arr)) ids.set(arr, nextId++); return ids.get(arr); };
+    const draw=()=>{
+      const box=$('#a3vars',el); box.innerHTML='';
+      [['a',a],['b',b]].forEach(([name,arr])=>{
+        if(!arr) return;
+        const row=h('div',{class:'refrow'});
+        row.append(h('div',{class:'refname'},`<span class="var"><b>${name}</b></span> → <span class="pill ${idOf(arr)===1?'good':'blue'}">array #${idOf(arr)}</span>`));
+        const boxes=h('div'); renderBoxes(boxes,arr,{cls:()=> b && a===b ? 'hl':''}); row.append(boxes); box.append(row);
+      });
+      const shared = b && a===b;
+      $('#a3out',el).innerHTML = log + (b ? `\n// a === b → <b>${shared}</b>${shared?'  (one array, two names)':'  (two separate arrays)'}` : '');
+      $('#a3push',el).disabled = $('#a3set',el).disabled = !b;
+      $('#a3ref',el).disabled = $('#a3copy',el).disabled = !!b;
+    };
+    const reset=()=>{ a=[1,2,3]; b=null; ids=new Map(); nextId=1; log='const a = [1, 2, 3];'; draw(); };
+    $('#a3ref',el).onclick=()=>{ b=a; log+='\nconst b = a;'; draw(); };
+    $('#a3copy',el).onclick=()=>{ b=[...a]; log+='\nconst b = [...a];'; draw(); };
+    $('#a3push',el).onclick=()=>{ b.push(4); log+='\nb.push(4);   // a is now '+fmt(a); draw(); };
+    $('#a3set',el).onclick=()=>{ b[0]=99; log+='\nb[0] = 99;   // a is now '+fmt(a); draw(); };
+    $('#a3reset',el).onclick=reset;
+    reset();
+  },
+  quiz:[
+    {q:'<code>const a = [1]; const b = a; b.push(2);</code>. What is <code>a</code>?', opts:['[1]','[1, 2]','[2]','Error: a is const'], a:1, why:'b and a point at the same array, so pushing through b changes what a sees.'},
+    {q:'What does <code>[1, 2] === [1, 2]</code> give?', opts:['true','false','undefined','An error'], a:1, why:'=== on arrays compares addresses, not contents. These are two separate arrays.'},
+    {q:'<code>const [x, ...rest] = [5, 6, 7];</code>. What is <code>rest</code>?', opts:['7','[6, 7]','[5, 6, 7]','6'], a:1, why:'x takes the first item; ...rest collects everything left into a new array.'},
+  ],
+  exercise:{
+    task:'<ol><li><code>copy</code>: a real copy of <code>original</code> using spread, then push <code>4</code> onto <code>copy</code> (original must stay <code>[1, 2, 3]</code>)</li><li><code>combined</code>: <code>original</code> and <code>extra</code> merged into one new array using spread</li><li>Use destructuring on <code>original</code> to create <code>first</code> (the first item) and <code>others</code> (the rest)</li></ol>',
+    starter:`const original = [1, 2, 3];\nconst extra = [10, 20];\n\nconst copy = \n\n\nconst combined = \n\n// destructure first and others from original\n\n\nconsole.log(original, copy, combined, first, others);`,
+    extract: varsExtract(['original','copy','combined','first','others']),
+    tests:(v,code)=>[
+      [same(v.copy,[1,2,3,4]), 'copy is [1, 2, 3, 4]'],
+      [same(v.original,[1,2,3]), 'original is still [1, 2, 3]'],
+      [same(v.combined,[1,2,3,10,20]), 'combined is [1, 2, 3, 10, 20]'],
+      [v.first===1 && same(v.others,[2,3]) && /\[\s*first\s*,\s*\.\.\.\s*others\s*\]/.test(code), 'first is 1 and others is [2, 3] (using destructuring)'],
+      [(code.match(/\.\.\./g)||[]).length>=3, 'used spread ... for the copy and the merge'],
+    ],
+    hint:'<code>const copy = [...original];</code> then <code>copy.push(4);</code>. Merge with <code>[...original, ...extra]</code>, and destructure with <code>const [first, ...others] = original;</code>',
+    solution:`const original = [1, 2, 3];\nconst extra = [10, 20];\n\nconst copy = [...original];\ncopy.push(4);\n\nconst combined = [...original, ...extra];\n\n// destructure first and others from original\nconst [first, ...others] = original;\n\nconsole.log(original, copy, combined, first, others);`
+  }
+},
+/* ================= ADVANCED · PART 2: REAL WORLD ================= */
+/* A4 */ {
+  id:'adv-objects', level:'adv', part:'Part 2 · Real world', title:'Arrays of objects', short:'Arrays of objects',
+  lead:'Real app data is rarely a list of plain numbers. It\'s usually a list of <b>records</b> such as users, products or orders, each one an object. Everything you\'ve learned still works; you just reach into each object with a dot.',
+  lesson:`
+<pre><span class="k">const</span> students = [
+  { name: <span class="s">"Ana"</span>,  grade: <span class="n">88</span>, city: <span class="s">"Paris"</span> },
+  { name: <span class="s">"Ben"</span>,  grade: <span class="n">72</span>, city: <span class="s">"Lagos"</span> },
+  { name: <span class="s">"Chen"</span>, grade: <span class="n">95</span>, city: <span class="s">"Toronto"</span> },
+];
+
+students[<span class="n">0</span>]                          <span class="c">// { name: "Ana", grade: 88, city: "Paris" }</span>
+students[<span class="n">0</span>].name                     <span class="c">// "Ana"   index first, then the property</span>
+students.map(s =&gt; s.name)             <span class="c">// ["Ana", "Ben", "Chen"]</span>
+students.filter(s =&gt; s.grade &gt;= <span class="n">80</span>)  <span class="c">// [ {Ana…}, {Chen…} ]  whole objects</span>
+students.find(s =&gt; s.city === <span class="s">"Lagos"</span>) <span class="c">// { name: "Ben", … }  one object</span>
+[...students].sort((a, b) =&gt; b.grade - a.grade)  <span class="c">// highest grade first</span></pre>
+    <div class="analogy"><div class="ico">🗂️</div><div>Think of a spreadsheet: the <b>array</b> is the list of rows, and each <b>object</b> is one row with named columns. <code>s =&gt; s.grade</code> means "for each row, read the grade column".</div></div>
+    <div class="tip">💡 This is exactly the shape of most API responses, and of the data behind every list or table you render in React (<code>users.map(u =&gt; &lt;Row key={u.id} … /&gt;)</code>).</div>`,
+  widgetTitle:'Query the records',
+  widget(el){
+    const S=[{name:'Ana',grade:88,city:'Paris'},{name:'Ben',grade:72,city:'Lagos'},{name:'Chen',grade:95,city:'Toronto'},{name:'Dara',grade:64,city:'Lagos'},{name:'Eli',grade:81,city:'Paris'}];
+    const Q={
+      'students[2].grade': ()=>S[2].grade,
+      'students.map(s => s.name)': ()=>S.map(s=>s.name),
+      'students.map(s => s.grade + 5)': ()=>S.map(s=>s.grade+5),
+      'students.filter(s => s.grade >= 80)': ()=>S.filter(s=>s.grade>=80),
+      'students.filter(s => s.city === "Paris")': ()=>S.filter(s=>s.city==='Paris'),
+      'students.find(s => s.city === "Lagos")': ()=>S.find(s=>s.city==='Lagos'),
+      '[...students].sort((a, b) => b.grade - a.grade)': ()=>[...S].sort((a,b)=>b.grade-a.grade),
+    };
+    el.innerHTML=`<p>Pick a query to run against the <code>students</code> array.</p>
+      <div class="controls"><select id="a4q" style="max-width:100%">${Object.keys(Q).map(k=>`<option>${esc(k)}</option>`).join('')}</select><button class="btn" id="a4go">Run ▶</button></div>
+      <div class="row-label">students</div><div id="a4src"></div>
+      <div class="row-label">result <span id="a4kind"></span></div><div id="a4res"></div>`;
+    const table=(rows, hl, hlCell)=>`<table class="rec"><tr><th>#</th><th>name</th><th>grade</th><th>city</th></tr>${rows.map((r,i)=>`<tr class="${hl&&hl.has(r)?'on':''}"><td class="i">${i}</td><td>${r.name}</td><td class="${hlCell&&hlCell[0]===r&&hlCell[1]==='grade'?'cell-on':''}">${r.grade}</td><td>${r.city}</td></tr>`).join('')}</table>`;
+    const run=()=>{
+      const k=$('#a4q',el).value, r=Q[k]();
+      let hl=new Set(), cell=null, kind='', out='';
+      if(Array.isArray(r) && r.length && typeof r[0]==='object'){ r.forEach(x=>hl.add(x)); kind=`<span class="pill blue">array of ${r.length} object${r.length===1?'':'s'}</span>`; out=table(r); }
+      else if(Array.isArray(r)){ kind=`<span class="pill blue">array of ${typeof r[0]}s</span>`; const d=h('div'); renderBoxes(d,r,{cls:()=>'out'}); out=d.outerHTML; }
+      else if(r && typeof r==='object'){ hl.add(r); kind='<span class="pill good">one object (not an array!)</span>'; out=`<div class="readout">${esc(JSON.stringify(r).replace(/"(\w+)":/g,'$1: ').replace(/,/g,', '))}</div>`; }
+      else { kind=`<span class="pill good">a ${typeof r}</span>`; cell=[S[2],'grade']; hl.add(S[2]); out=`<div class="readout"><b>${esc(fmt(r))}</b></div>`; }
+      $('#a4src',el).innerHTML=table(S, k.startsWith('students.map')?null:hl, cell);
+      $('#a4kind',el).innerHTML=kind; $('#a4res',el).innerHTML=out;
+    };
+    $('#a4go',el).onclick=run; $('#a4q',el).onchange=run;
+    run();
+  },
+  quiz:[
+    {q:'<code>const p = [{ n: "A", price: 5 }, { n: "B", price: 9 }];</code>. What is <code>p[1].price</code>?', opts:['5','9','"B"','undefined'], a:1, why:'p[1] is the second object; .price reads its price.'},
+    {q:'What does <code>users.map(u =&gt; u.email)</code> return?', opts:['An array of user objects','One email string','An array of email strings','true or false'], a:2, why:'map turns each user object into its email, giving an array of strings.'},
+    {q:'What does <code>users.find(u =&gt; u.id === 7)</code> return when it matches?', opts:['An array with one user','The user object itself','The index 7','true'], a:1, why:'find returns the matching item. Here that\'s an object, not an array.'},
+  ],
+  exercise:{
+    task:'Using <code>products</code>:<ol><li><code>names</code>: an array of just the product names</li><li><code>available</code>: only the products that are in stock (the whole objects)</li><li><code>bookPrice</code>: the price of the product named "Book" (use <code>find</code>)</li></ol>',
+    starter:`const products = [\n  { name: "Pen",  price: 2,  inStock: true },\n  { name: "Book", price: 15, inStock: false },\n  { name: "Bag",  price: 30, inStock: true },\n  { name: "Mug",  price: 8,  inStock: true },\n];\n\nconst names = \nconst available = \nconst bookPrice = \n\nconsole.log(names);\nconsole.log(available);\nconsole.log(bookPrice);`,
+    extract: varsExtract(['names','available','bookPrice']),
+    tests:(v,code)=>[
+      [same(v.names,['Pen','Book','Bag','Mug']) && /\.map\s*\(/.test(code), 'names is ["Pen", "Book", "Bag", "Mug"] (using map)'],
+      [Array.isArray(v.available) && same(v.available.map(p=>p&&p.name),['Pen','Bag','Mug']) && typeof v.available[0]==='object', 'available holds the 3 in-stock product objects'],
+      [v.bookPrice===15 && /\.find\s*\(/.test(code), 'bookPrice is 15 (using find)'],
+    ],
+    hint:'<code>products.map(p =&gt; p.name)</code>, <code>products.filter(p =&gt; p.inStock)</code>, and <code>products.find(p =&gt; p.name === "Book").price</code>.',
+    solution:`const products = [\n  { name: "Pen",  price: 2,  inStock: true },\n  { name: "Book", price: 15, inStock: false },\n  { name: "Bag",  price: 30, inStock: true },\n  { name: "Mug",  price: 8,  inStock: true },\n];\n\nconst names = products.map(p => p.name);\nconst available = products.filter(p => p.inStock);\nconst bookPrice = products.find(p => p.name === "Book").price;\n\nconsole.log(names);\nconsole.log(available);\nconsole.log(bookPrice);`
+  }
+},
+/* A5 */ {
+  id:'adv-grid', level:'adv', part:'Part 2 · Real world', title:'Nested arrays & 2D grids', short:'2D grids',
+  lead:'An array can hold other arrays. That gives you a <b>grid</b> with rows and columns, the structure behind game boards, seating plans, spreadsheets and pixel images.',
+  lesson:`
+<pre><span class="k">const</span> board = [
+  [<span class="s">"X"</span>, <span class="s">"O"</span>, <span class="s">"X"</span>],   <span class="c">// row 0</span>
+  [<span class="s">" "</span>, <span class="s">"X"</span>, <span class="s">"O"</span>],   <span class="c">// row 1</span>
+  [<span class="s">"O"</span>, <span class="s">" "</span>, <span class="s">"X"</span>],   <span class="c">// row 2</span>
+];
+
+board[<span class="n">1</span>]          <span class="c">// [" ", "X", "O"]  ← a whole row (an array)</span>
+board[<span class="n">1</span>][<span class="n">2</span>]       <span class="c">// "O"   ← row 1, then column 2</span>
+board.length      <span class="c">// 3     ← number of rows</span>
+board[<span class="n">0</span>].length   <span class="c">// 3     ← number of columns</span></pre>
+    <p>The rule is <b>row first, column second</b>: <code>grid[row][col]</code>. The first <code>[ ]</code> picks a row (which is itself an array), and the second picks an item inside that row.</p>
+    <p>To visit every cell, put a loop inside a loop:</p>
+<pre><span class="k">for</span> (<span class="k">let</span> r = <span class="n">0</span>; r &lt; board.length; r++) {
+  <span class="k">for</span> (<span class="k">let</span> c = <span class="n">0</span>; c &lt; board[r].length; c++) {
+    console.log(r, c, board[r][c]);
+  }
+}</pre>
+    <div class="tip">💡 The inner loop runs all the way through for <b>every single</b> pass of the outer loop, so a 3 × 4 grid runs the inner body 12 times.</div>`,
+  widgetTitle:'Grid explorer',
+  widget(el){
+    const G=[[7,2,9,4],[5,8,1,6],[3,0,11,10]];
+    let sel=null, rowSel=null, busy=false, visited=new Set();
+    el.innerHTML=`<p>Click a cell to see how you'd access it, show a whole row, or watch a nested loop visit every cell.</p>
+      <div class="controls"><button class="btn ghost mono" data-row="0">grid[0]</button><button class="btn ghost mono" data-row="1">grid[1]</button><button class="btn ghost mono" data-row="2">grid[2]</button><button class="btn" id="a5loop">Nested loop ▶</button></div>
+      <div class="grid2d" id="a5grid"></div><div class="readout" id="a5out">// click a cell</div>`;
+    const draw=()=>{
+      const g=$('#a5grid',el); g.innerHTML='';
+      g.style.gridTemplateColumns=`40px repeat(${G[0].length}, 64px)`;
+      g.append(h('div',{class:'gl'},''));
+      G[0].forEach((_,c)=>g.append(h('div',{class:'gl'},`col ${c}`)));
+      G.forEach((row,r)=>{
+        g.append(h('div',{class:'gl'},`row ${r}`));
+        row.forEach((v,c)=>{
+          const k=r+','+c;
+          const cls='gc'+(sel===k?' on':'')+(rowSel===r?' row':'')+(visited.has(k)&&sel!==k?' seen':'');
+          g.append(h('div',{class:cls,onclick:()=>{ if(busy) return; sel=k; rowSel=null; visited.clear(); draw(); $('#a5out',el).innerHTML=`grid[${r}][${c}]  →  <b>${v}</b>   // row ${r}, then column ${c}`; }},String(v)));
+        });
+      });
+    };
+    el.querySelectorAll('[data-row]').forEach(b=>b.onclick=()=>{ if(busy) return; const r=+b.dataset.row; rowSel=r; sel=null; visited.clear(); draw(); $('#a5out',el).innerHTML=`grid[${r}]  →  <b>${fmt(G[r])}</b>   // a row is an array\ngrid[${r}].length → ${G[r].length}`; });
+    $('#a5loop',el).onclick=async()=>{
+      if(busy) return; busy=true; visited.clear(); rowSel=null; let n=0;
+      for(let r=0;r<G.length;r++) for(let c=0;c<G[r].length;c++){
+        sel=r+','+c; n++; draw(); visited.add(sel);
+        $('#a5out',el).innerHTML=`outer r = <b>${r}</b>   inner c = <b>${c}</b>\ngrid[${r}][${c}] → ${G[r][c]}     // visit #${n}`;
+        await sleep(380);
+      }
+      sel=null; draw(); $('#a5out',el).innerHTML=`// done: ${G.length} rows × ${G[0].length} columns = <b>${n}</b> visits`; busy=false;
+    };
+    draw();
+  },
+  quiz:[
+    {q:'<code>const g = [[1, 2], [3, 4]];</code>. What is <code>g[1][0]</code>?', opts:['2','3','4','[3, 4]'], a:1, why:'g[1] is [3, 4], and index 0 of that row is 3.'},
+    {q:'For the same grid, what is <code>g[0]</code>?', opts:['1','[1, 3]','[1, 2]','undefined'], a:2, why:'One index gives a whole row, which is an array.'},
+    {q:'A grid has 3 rows and 4 columns. How many times does the inner body of a nested loop run?', opts:['7','3','4','12'], a:3, why:'4 columns for each of 3 rows: 3 × 4 = 12.'},
+  ],
+  exercise:{
+    task:'Using the <code>seats</code> grid:<ol><li><code>middleSeat</code>: the seat in the very centre</li><li><code>lastRow</code>: the whole last row (use <code>.length</code>, not the number 2)</li><li><code>total</code>: count every seat using a <b>nested</b> for loop</li></ol>',
+    starter:`const seats = [\n  ["A1", "A2", "A3"],\n  ["B1", "B2", "B3"],\n  ["C1", "C2", "C3"],\n];\n\nconst middleSeat = \nconst lastRow = \n\nlet total = 0;\n// nested loop here\n\n\nconsole.log(middleSeat, lastRow, total);`,
+    extract: varsExtract(['middleSeat','lastRow','total']),
+    tests:(v,code)=>[
+      [v.middleSeat==='B2', 'middleSeat is "B2"'],
+      [same(v.lastRow,['C1','C2','C3']) && /seats\s*\[\s*seats\.length\s*-\s*1\s*\]/.test(code), 'lastRow is ["C1", "C2", "C3"] (using seats.length - 1)'],
+      [v.total===9, 'total is 9'],
+      [(code.match(/\bfor\s*\(/g)||[]).length>=2, 'used two for loops (one inside the other)'],
+    ],
+    hint:'Centre is row 1, column 1: <code>seats[1][1]</code>. For the count: <code>for (let r …) { for (let c = 0; c &lt; seats[r].length; c++) { total++; } }</code>',
+    solution:`const seats = [\n  ["A1", "A2", "A3"],\n  ["B1", "B2", "B3"],\n  ["C1", "C2", "C3"],\n];\n\nconst middleSeat = seats[1][1];\nconst lastRow = seats[seats.length - 1];\n\nlet total = 0;\nfor (let r = 0; r < seats.length; r++) {\n  for (let c = 0; c < seats[r].length; c++) {\n    total++;\n  }\n}\n\nconsole.log(middleSeat, lastRow, total);`
+  }
+},
+/* A6 */ {
+  id:'adv-chain', level:'adv', part:'Part 2 · Real world', title:'Chaining methods into a pipeline', short:'Chaining',
+  lead:'Because <code>filter</code>, <code>map</code>, <code>sort</code> and <code>slice</code> all <b>return an array</b>, you can call the next method straight on the result. A few lines can do what used to take a whole loop.',
+  lesson:`
+<pre><span class="k">const</span> topTitles = movies
+  .filter(m =&gt; m.rating &gt;= <span class="n">8</span>)             <span class="c">// 1. keep the good ones</span>
+  .sort((a, b) =&gt; b.rating - a.rating)   <span class="c">// 2. best first</span>
+  .slice(<span class="n">0</span>, <span class="n">3</span>)                          <span class="c">// 3. top three</span>
+  .map(m =&gt; m.title);                    <span class="c">// 4. just the titles</span></pre>
+    <p>Read it top to bottom like a recipe. Each line receives the array produced by the line above it.</p>
+    <div class="analogy"><div class="ico">🏭</div><div>A chain is an <b>assembly line</b>: each station does one job and passes its output to the next station.</div></div>
+    <p><b>Order matters.</b> To get the names of the top 3, you must <code>sort</code> before <code>slice</code>, and <code>map</code> to names last. Once you've mapped to strings, the ratings are gone.</p>
+    <div class="tip">💡 <code>filter</code> already returns a new array, so a <code>sort</code> after it is safe. If <code>sort</code> comes <b>first</b> in the chain, copy before sorting: <code>[...movies].sort(...)</code>. Otherwise you'll reorder the original.</div>`,
+  widgetTitle:'Pipeline builder',
+  widget(el){
+    const M=[{title:'Arrival',rating:7.9},{title:'Coco',rating:8.4},{title:'Up',rating:8.3},{title:'Cars',rating:7.2},{title:'Soul',rating:8.0},{title:'Her',rating:8.0},{title:'Jaws',rating:8.1}];
+    const steps=[
+      {code:'.filter(m => m.rating >= 8)', f:a=>a.filter(m=>m.rating>=8)},
+      {code:'.sort((a, b) => b.rating - a.rating)', f:a=>[...a].sort((x,y)=>y.rating-x.rating)},
+      {code:'.slice(0, 3)', f:a=>a.slice(0,3)},
+      {code:'.map(m => m.title)', f:a=>a.map(m=>m.title)},
+    ];
+    const on=[true,true,true,true];
+    el.innerHTML=`<p>Toggle steps on and off, and watch what flows out of each one. Try turning off the sort, or the filter.</p><div id="a6"></div>`;
+    const chips=arr=>`<div class="chips">${arr.map(x=>typeof x==='object'?`<span class="chip">${x.title} <small>★${x.rating.toFixed(1)}</small></span>`:`<span class="chip str">"${esc(x)}"</span>`).join('') || '<span class="muted">[] empty</span>'}</div>`;
+    const draw=()=>{
+      let cur=M; let html=`<div class="pstep"><div class="pcode">movies <span class="muted">// ${M.length} items</span></div>${chips(M)}</div>`;
+      steps.forEach((s,i)=>{
+        if(on[i]) cur=s.f(cur);
+        html+=`<div class="pstep ${on[i]?'':'off'}"><label class="pcode"><input type="checkbox" data-i="${i}" ${on[i]?'checked':''}> ${esc(s.code)} ${on[i]?`<span class="muted">// → ${cur.length} item${cur.length===1?'':'s'}</span>`:'<span class="muted">// skipped</span>'}</label>${on[i]?chips(cur):''}</div>`;
+      });
+      $('#a6',el).innerHTML=html;
+      el.querySelectorAll('[data-i]').forEach(c=>c.onchange=()=>{on[+c.dataset.i]=c.checked;draw();});
+    };
+    draw();
+  },
+  quiz:[
+    {q:'<code>[1, 2, 3, 4].filter(n =&gt; n % 2 === 0).map(n =&gt; n * 10)</code> returns…', opts:['[10, 20, 30, 40]','[20, 40]','[2, 4]','[10, 30]'], a:1, why:'filter keeps [2, 4], then map multiplies each by 10.'},
+    {q:'Why can you write <code>.filter(...).map(...)</code> straight after each other?', opts:['JavaScript ignores the dots','filter returns an array, and arrays have a map method','map is a global function','It only works with numbers'], a:1, why:'Each method returns an array, so the next method is called on that new array.'},
+    {q:'You want the <b>names</b> of the <b>top 2</b> scorers. Which order works?', opts:['map → sort → slice','slice → sort → map','sort → slice → map','map → slice → sort'], a:2, why:'Sort first so the best are at the front, take 2, then map to names. Mapping first throws away the scores you need to sort by.'},
+  ],
+  exercise:{
+    task:'In <b>one chain</b>, make <code>topNames</code>: the names of players who scored <b>80 or more</b>, ordered <b>highest score first</b>.<br>Expected: <code>["Lea", "Ola", "Noa"]</code>. The original <code>players</code> array must keep its order.',
+    starter:`const players = [\n  { name: "Kai", score: 72 },\n  { name: "Lea", score: 95 },\n  { name: "Max", score: 60 },\n  { name: "Noa", score: 88 },\n  { name: "Ola", score: 91 },\n];\n\nconst topNames = players\n  // your chain here\n\n\nconsole.log(topNames);`,
+    extract: varsExtract(['topNames','players']),
+    tests:(v,code)=>[
+      [same(v.topNames,['Lea','Ola','Noa']), 'topNames is ["Lea", "Ola", "Noa"]'],
+      [/\.filter\s*\(/.test(code) && /\.sort\s*\(/.test(code) && /\.map\s*\(/.test(code), 'used filter, sort and map'],
+      [Array.isArray(v.players) && v.players[0] && v.players[0].name==='Kai' && v.players[4].name==='Ola', 'players kept its original order'],
+    ],
+    hint:'<code>.filter(p =&gt; p.score &gt;= 80)</code> → <code>.sort((a, b) =&gt; b.score - a.score)</code> → <code>.map(p =&gt; p.name)</code>. Filtering first means sort works on a new array.',
+    solution:`const players = [\n  { name: "Kai", score: 72 },\n  { name: "Lea", score: 95 },\n  { name: "Max", score: 60 },\n  { name: "Noa", score: 88 },\n  { name: "Ola", score: 91 },\n];\n\nconst topNames = players\n  .filter(p => p.score >= 80)\n  .sort((a, b) => b.score - a.score)\n  .map(p => p.name);\n\nconsole.log(topNames);`
+  }
+},
+/* A7 */ {
+  id:'adv-final', level:'adv', part:'Part 2 · Real world', title:'Advanced final: the leaderboard', short:'Final: leaderboard',
+  lead:'Real data arrives messy. You get a log of individual match results, with players appearing many times, and you need to turn it into a ranked leaderboard. This uses nearly everything from the advanced section.',
+  lesson:`
+    <p>The input looks like this, with one object per match:</p>
+<pre><span class="k">const</span> matches = [
+  { player: <span class="s">"Ana"</span>, points: <span class="n">10</span> },
+  { player: <span class="s">"Ben"</span>, points: <span class="n">5</span> },
+  { player: <span class="s">"Ana"</span>, points: <span class="n">15</span> },   <span class="c">// Ana again!</span>
+  …
+];</pre>
+    <p>A good plan is to build a <code>totals</code> array of <code>{ player, total }</code> objects:</p>
+    <ol>
+      <li><b>Loop</b> over every match.</li>
+      <li>Use <code>find</code> to check whether that player is already in <code>totals</code>.</li>
+      <li>If they are, add the points to their <code>total</code>. If not (<code>find</code> gave <code>undefined</code>), <code>push</code> a new object.</li>
+      <li><code>sort</code> by total, highest first. If two totals are tied, sort those two by name A→Z.</li>
+      <li><code>slice</code> the top 3.</li>
+    </ol>
+    <div class="tip">💡 <code>find</code> returns the object <b>itself</b>, not a copy (remember references). So <code>existing.total += m.points</code> updates the object that's inside <code>totals</code>.</div>
+    <h2 style="margin-top:22px">Advanced cheat sheet</h2>
+    <div class="cheats">
+      <div class="cheat"><code>find / findIndex</code><br>first match: the item / its index</div>
+      <div class="cheat"><code>some / every</code><br>any pass? / all pass?</div>
+      <div class="cheat"><code>slice(s, e)</code><br>copy a part (original untouched)</div>
+      <div class="cheat"><code>splice(s, n, ...items)</code><br>cut/insert in the original</div>
+      <div class="cheat"><code>sort((a, b) =&gt; a - b)</code><br>numeric sort (changes the original)</div>
+      <div class="cheat"><code>[...a]  /  [...a, ...b]</code><br>copy / merge</div>
+      <div class="cheat"><code>const [x, ...rest] = a</code><br>destructuring</div>
+      <div class="cheat"><code>arr.map(o =&gt; o.key)</code><br>pluck a property from objects</div>
+      <div class="cheat"><code>grid[row][col]</code><br>2D access, row first</div>
+      <div class="cheat"><code>.filter().sort().slice().map()</code><br>a pipeline</div>
+    </div>`,
+  widget:null,
+  quiz:[
+    {q:'<code>totals.find(t =&gt; t.player === "Zoe")</code> when Zoe isn\'t in totals returns…', opts:['-1','null','undefined','An empty object'], a:2, why:'find gives undefined when nothing matches, which makes it easy to check with <code>if (!existing)</code>.'},
+    {q:'Which compare function sorts objects by <code>total</code>, highest first?', opts:['(a, b) => a.total - b.total','(a, b) => b.total - a.total','(a, b) => a - b','(a, b) => a.total > b.total'], a:1, why:'b − a puts larger values first. You must compare the .total property, not the objects themselves.'},
+    {q:'You found <code>const existing = totals.find(...)</code> and did <code>existing.total += 5</code>. Does <code>totals</code> change?', opts:['No, find returned a copy','Yes, existing points at the same object that\'s in totals','Only if you push it back in','It throws an error'], a:1, why:'Objects and arrays are shared by reference, so you\'re editing the actual object inside totals.'},
+  ],
+  exercise:{
+    task:'Write <code>leaderboard(matches)</code> that returns the <b>top 3</b> players as <code>{ player, total }</code> objects, highest total first.<ol><li>Players appear multiple times, so add up all their points.</li><li>If two totals tie, put them in alphabetical order by name (<code>a.player.localeCompare(b.player)</code>).</li><li>Fewer than 3 players → return all of them. No matches → <code>[]</code>.</li><li>Don\'t change the <code>matches</code> array.</li></ol>',
+    starter:`function leaderboard(matches) {\n  const totals = []; // e.g. [{ player: "Ana", total: 25 }]\n\n  // 1. loop through matches\n  //    use find() to see if the player is already in totals\n  //    yes → add the points   no → push a new { player, total }\n\n  // 2. sort totals: highest total first (ties → A–Z by name)\n\n  // 3. return only the top 3\n  return totals;\n}\n\nconsole.log(leaderboard([\n  { player: "Ana", points: 10 },\n  { player: "Ben", points: 5 },\n  { player: "Ana", points: 15 },\n  { player: "Cy",  points: 20 },\n  { player: "Ben", points: 12 },\n  { player: "Dee", points: 8 },\n  { player: "Cy",  points: 3 },\n]));`,
+    extract: `(() => {
+      const m1 = [{player:"Ana",points:10},{player:"Ben",points:5},{player:"Ana",points:15},{player:"Cy",points:20},{player:"Ben",points:12},{player:"Dee",points:8},{player:"Cy",points:3},{player:"Dee",points:1}];
+      const copy = JSON.stringify(m1);
+      const a = leaderboard(m1);
+      return { a, untouched: JSON.stringify(m1) === copy,
+        b: leaderboard([{player:"Zed",points:5}]),
+        c: leaderboard([{player:"Bo",points:10},{player:"Al",points:4},{player:"Cy",points:4},{player:"Al",points:6}]),
+        d: leaderboard([]) };
+    })()`,
+    tests:(v)=>{
+      const clean=x=>Array.isArray(x)?x.map(o=>o&&({player:o.player,total:o.total})):x;
+      return [
+        [same(clean(v.a),[{player:'Ana',total:25},{player:'Cy',total:23},{player:'Ben',total:17}]), 'main example → Ana 25, Cy 23, Ben 17'],
+        [same(clean(v.b),[{player:'Zed',total:5}]), 'one player → [{ player: "Zed", total: 5 }]'],
+        [same(clean(v.c),[{player:'Al',total:10},{player:'Bo',total:10},{player:'Cy',total:4}]), 'tie on 10 → Al before Bo'],
+        [same(v.d,[]), 'no matches → []'],
+        [v.untouched===true, 'the matches array was not changed'],
+      ];
+    },
+    hint:'Inside the loop: <code>const existing = totals.find(t =&gt; t.player === m.player);</code> then <code>if (existing) existing.total += m.points; else totals.push({ player: m.player, total: m.points });</code>. Sort with <code>(a, b) =&gt; b.total - a.total || a.player.localeCompare(b.player)</code>, then <code>return totals.slice(0, 3);</code>',
+    solution:`function leaderboard(matches) {\n  const totals = [];\n\n  for (const m of matches) {\n    const existing = totals.find(t => t.player === m.player);\n    if (existing) {\n      existing.total += m.points;\n    } else {\n      totals.push({ player: m.player, total: m.points });\n    }\n  }\n\n  totals.sort((a, b) => b.total - a.total || a.player.localeCompare(b.player));\n\n  return totals.slice(0, 3);\n}\n\nconsole.log(leaderboard([\n  { player: "Ana", points: 10 },\n  { player: "Ben", points: 5 },\n  { player: "Ana", points: 15 },\n  { player: "Cy",  points: 20 },\n  { player: "Ben", points: 12 },\n  { player: "Dee", points: 8 },\n  { player: "Cy",  points: 3 },\n]));`
+  }
+}
+
+];
+
+/* ---------- app shell ---------- */
+STAGES.forEach(s=>{ if(!s.level) s.level='basic'; });
+const LEVELS = { basic:{name:'Beginner', title:'Beginner course'}, adv:{name:'Advanced', title:'Advanced section'} };
+const levelStages = lvl => STAGES.filter(s=>s.level===lvl);
+const lastOf = lvl => { const L=levelStages(lvl); return L[L.length-1]; };
+let current = 0;   // a stage index, or 'results-basic' / 'results-adv' / 'locked'
+function isDone(s){ const st=stageState(s.id); return s.quiz.every((_,i)=>st.quiz[i]===true) && st.code; }
+function advUnlocked(){ return isDone(lastOf('basic')) || progress._skip===true; }
+function isLocked(s){ return s.level==='adv' && !advUnlocked(); }
+function advStarted(){ return levelStages('adv').some(s=>{ const p=progress[s.id]; return p && (p.code || Object.keys(p.quiz||{}).length || p.runs); }); }
+
+function updateNav(){
+  const nav=$('#nav'); nav.innerHTML=''; let lastLevel=null, lastPart=null;
+  STAGES.forEach((s,i)=>{
+    if(s.level!==lastLevel){
+      if(lastLevel) addResultsLink(nav,lastLevel);
+      nav.append(h('div',{class:'nav-h'}, LEVELS[s.level].name + (s.level==='adv' && !advUnlocked() ? ' <span class="lock">🔒</span>' : '')));
+      lastLevel=s.level; lastPart=null;
+    }
+    if(s.part && s.part!==lastPart){ nav.append(h('div',{class:'nav-sub'}, s.part)); lastPart=s.part; }
+    const done=isDone(s), locked=isLocked(s);
+    const num=levelStages(s.level).indexOf(s)+1;
+    nav.append(h('button',{class:(i===current?'active ':'')+(done?'done ':'')+(locked?'locked':''), onclick:()=>{go(i); $('#side').classList.remove('open');}},
+      `<span class="dot">${done?'✓':num}</span><span>${s.short}</span>`));
+  });
+  addResultsLink(nav,lastLevel);
+  const n=STAGES.filter(isDone).length;
+  $('#bar').style.width = (n/STAGES.length*100)+'%';
+  $('#barLabel').textContent = `${n} of ${STAGES.length} stages complete`;
+}
+function addResultsLink(nav,lvl){
+  if(!resultsUnlocked(lvl)) return;
+  const key='results-'+lvl;
+  nav.append(h('button',{class:(current===key?'active':''), onclick:()=>{go(key); $('#side').classList.remove('open');}},
+    `<span class="dot">★</span><span>${LEVELS[lvl].name} results</span>`));
+}
+function go(i){ current=i; render(); window.scrollTo({top:0,behavior:'smooth'}); }
+
+function renderLocked(s){
+  $('#main').innerHTML=`
+    <div class="eyebrow">Advanced section</div>
+    <h1>🔒 Finish the beginner course first</h1>
+    <p class="lead">The advanced section builds on everything from the beginner stages. It unlocks when you pass the beginner final challenge.</p>
+    <section class="card"><p>You're at <b>${levelStages('basic').filter(isDone).length} of ${levelStages('basic').length}</b> beginner stages. If you already know the basics, you can skip ahead. Your beginner progress won't be affected.</p>
+      <div class="controls"><button class="btn accent" id="toBasic">Continue the beginner course</button><button class="btn ghost" id="skip">Skip ahead anyway</button></div></section>`;
+  $('#toBasic').onclick=()=>{ const i=STAGES.findIndex(x=>x.level==='basic' && !isDone(x)); go(i<0?0:i); };
+  $('#skip').onclick=()=>{ progress._skip=true; save(); go(STAGES.indexOf(s)); };
+  updateNav();
+}
+
+function render(){
+  if(typeof current==='string' && current.startsWith('results-')){
+    const lvl=current.slice(8); if(resultsUnlocked(lvl)) return renderResults(lvl); current=0;
+  }
+  const s=STAGES[current], st=stageState(s.id), main=$('#main');
+  if(isLocked(s)) return renderLocked(s);
+  const L=levelStages(s.level), k=L.indexOf(s), isLast=k===L.length-1;
+  const prev=STAGES[current-1], next=STAGES[current+1];
+  const doneMsg = !isLast ? 'Ready for the next one?' : s.level==='basic' ? 'You\'ve finished the beginner course. You know arrays now. 🎉' : 'You\'ve finished the advanced section. Serious array skills. 🚀';
+  main.innerHTML=`
+    <div class="eyebrow">${LEVELS[s.level].name}${s.part?' · '+s.part:''} · Stage ${k+1} of ${L.length}</div>
+    <h1>${s.title}</h1>
+    <p class="lead">${s.lead}</p>
+    <div class="checklist" id="chk"></div>
+    <section class="card"><h2><span class="tag">LEARN</span>The idea</h2>${s.lesson}</section>
+    ${s.widget?`<section class="card"><h2><span class="tag">PLAY</span>${s.widgetTitle}</h2><div id="widget"></div></section>`:''}
+    <section class="card"><h2><span class="tag">CHECK</span>Quick quiz</h2><div id="quiz"></div></section>
+    <section class="card"><h2><span class="tag">CODE</span>Your turn</h2>
+      <div class="task">${s.exercise.task}</div>
+      <textarea class="editor" id="ed" spellcheck="false"></textarea>
+      <div class="controls">
+        <button class="btn accent" id="run">▶ Run &amp; check</button>
+        <button class="btn ghost" id="hintBtn">Hint</button>
+        <button class="btn ghost" id="solBtn">Show solution</button>
+        <button class="btn ghost" id="resetCode">Reset code</button>
+      </div>
+      <div class="hint tip" id="hint">${s.exercise.hint}</div>
+      <div class="console" id="cons"><span class="lbl">Console</span>(run your code to see output)</div>
+      <div class="results" id="res"></div>
+    </section>
+    <div class="stage-done" id="doneBanner"><div><b style="font-size:18px">Stage complete!</b><br>${doneMsg}</div><button class="btn" id="nextBtn">${isLast?'See my results →':'Next stage →'}</button></div>
+    <div class="footer-nav">
+      ${prev?`<button class="btn ghost" id="prev">← ${prev.short}</button>`:'<span></span>'}
+      ${next?`<button class="btn ghost" id="next">${next.level!==s.level?'Advanced: ':''}${next.short} →</button>`:'<span></span>'}
+    </div>`;
+  if(s.widget) s.widget($('#widget'));
+  renderQuiz(s);
+  setupEditor(s);
+  if($('#prev')) $('#prev').onclick=()=>go(current-1);
+  if($('#next')) $('#next').onclick=()=>go(current+1);
+  $('#nextBtn').onclick=()=>go(isLast ? 'results-'+s.level : current+1);
+  refreshStatus(false);
+  updateNav();
+}
+
+function refreshStatus(celebrate){
+  if(typeof current!=='number') return;
+  const s=STAGES[current], st=stageState(s.id);
+  const qOk=s.quiz.every((_,i)=>st.quiz[i]===true);
+  $('#chk').innerHTML = `<span class="${qOk?'ok':''}">${qOk?'✓':'○'} Quiz</span><span class="${st.code?'ok':''}">${st.code?'✓':'○'} Code challenge</span>`;
+  const done=isDone(s);
+  const wasShown=$('#doneBanner').classList.contains('show');
+  $('#doneBanner').classList.toggle('show',done);
+  if(done && celebrate && !wasShown) confetti();
+  updateNav();
+}
+
+function renderQuiz(s){
+  const st=stageState(s.id), box=$('#quiz'); box.innerHTML='';
+  s.quiz.forEach((q,qi)=>{
+    const wrap=h('div',{class:'q'});
+    wrap.append(h('div',{class:'q-title'},`${qi+1}. ${q.q}`));
+    const opts=h('div',{class:'opts'}); const why=h('div',{class:'why'}); why.style.display='none';
+    q.opts.forEach((o,oi)=>{
+      const b=h('button',{class:'opt'},`<span class="letter">${'ABCD'[oi]}</span><span>${esc(o).replace(/&lt;code&gt;|&lt;\/code&gt;/g,'')}</span>`);
+      b.onclick=()=>{
+        opts.querySelectorAll('.opt').forEach(x=>x.classList.remove('right','wrong'));
+        const ok=oi===q.a; b.classList.add(ok?'right':'wrong');
+        why.style.display='block'; why.className='why '+(ok?'right':'wrong');
+        why.innerHTML = ok ? `<b>Correct.</b> ${q.why}` : `<b>Not quite. Try again.</b>`;
+        if(ok){ st.quiz[qi]=true; save(); refreshStatus(true); }
+        else if(st.quiz[qi]!==true){ st.qWrong[qi]=(st.qWrong[qi]||0)+1; save(); }
+      };
+      opts.append(b);
+      if(st.quiz[qi]===true && oi===q.a){ b.classList.add('right'); why.style.display='block'; why.className='why right'; why.innerHTML=`<b>Correct.</b> ${q.why}`; }
+    });
+    wrap.append(opts, why); box.append(wrap);
+  });
+}
+
+function setupEditor(s){
+  const st=stageState(s.id), ed=$('#ed');
+  ed.value = st.draft ?? s.exercise.starter;
+  ed.style.height = Math.max(200, (ed.value.split('\n').length+2)*22.4) + 'px';
+  ed.addEventListener('input',()=>{ st.draft=ed.value; save(); });
+  ed.addEventListener('keydown',e=>{
+    if(e.key==='Tab'){ e.preventDefault(); const a=ed.selectionStart,b=ed.selectionEnd; ed.value=ed.value.slice(0,a)+'  '+ed.value.slice(b); ed.selectionStart=ed.selectionEnd=a+2; st.draft=ed.value; save(); }
+    if(e.key==='Enter' && (e.ctrlKey||e.metaKey)){ e.preventDefault(); $('#run').click(); }
+  });
+  $('#hintBtn').onclick=()=>{ $('#hint').classList.toggle('show'); if(!st.code){ st.hint=true; save(); } };
+  $('#solBtn').onclick=()=>{ ed.value=s.exercise.solution; st.draft=ed.value; if(!st.code) st.sol=true; save(); };
+  $('#resetCode').onclick=()=>{ ed.value=s.exercise.starter; st.draft=null; save(); $('#res').innerHTML=''; $('#cons').innerHTML='<span class="lbl">Console</span>(run your code to see output)'; };
+  $('#run').onclick=async()=>{
+    const code=ed.value;
+    if(!st.code){ st.runs=(st.runs||0)+1; save(); }
+    $('#run').disabled=true; $('#cons').innerHTML='<span class="lbl">Console</span>running…';
+    const r=await runCode(code, s.exercise.extract);
+    $('#run').disabled=false;
+    let out = r.logs.length ? r.logs.map(esc).join('\n') : '(nothing logged)';
+    if(!r.ok) out += `\n<span class="err">⚠ ${esc(friendly(r.error))}</span>`;
+    $('#cons').innerHTML = '<span class="lbl">Console</span>' + out;
+    const res=$('#res'); res.innerHTML='';
+    if(!r.ok){ res.append(h('div',{class:'res fail'},'✗ Fix the error above, then run again.')); return; }
+    const vals = r.vals && typeof r.vals==='object' ? r.vals : {};
+    const tests=s.exercise.tests(vals, code.replace(/\/\/.*$/gm,''));
+    tests.forEach(([pass,label])=>res.append(h('div',{class:'res '+(pass?'pass':'fail')},(pass?'✓ ':'✗ ')+label)));
+    if(tests.every(t=>t[0])){ st.code=true; save(); refreshStatus(true); }
+  };
+}
+
+/* ---------- results / scoring ---------- */
+function resultsUnlocked(lvl){ return isDone(lastOf(lvl)); }
+function scoreStage(s){
+  const st=stageState(s.id), n=s.quiz.length;
+  let quizPts=0, firstTry=0;
+  s.quiz.forEach((_,i)=>{
+    if(st.quiz[i]!==true) return;
+    const w=st.qWrong[i]||0; if(w===0) firstTry++;
+    quizPts += (50/n) * (w===0 ? 1 : w===1 ? 0.5 : 0.25);
+  });
+  let codePts=0, codeNote='Not passed yet';
+  if(st.code){
+    if(st.sol){ codePts=10; codeNote='Passed after viewing the solution'; }
+    else {
+      const extra=Math.max(0,(st.runs||1)-1);
+      codePts = 50 - (st.hint?10:0) - Math.min(20, extra*5);
+      codeNote = (st.runs<=1 ? 'Passed on the first run' : `Passed after ${st.runs} runs`) + (st.hint ? ' · used a hint' : '');
+    }
+  }
+  return { score:Math.round(quizPts+codePts), quizPts:Math.round(quizPts), codePts, firstTry, n, codeNote, done:isDone(s), st };
+}
+function grade(p, lvl){
+  const adv = lvl==='adv';
+  if(p>=90) return {t: adv?'Array Wizard':'Array Master', e: adv?'🧙':'🏆', m: adv?'Outstanding. You can handle real-world array data confidently.':'Excellent. You clearly understand arrays and can use them on your own.'};
+  if(p>=75) return {t:'Solid Foundation', e:'💪', m:'Strong work. A quick review of the stages listed below will make it stick.'};
+  if(p>=60) return {t:'Getting There', e:'🌱', m:'You have the core ideas. Revisit the weaker stages and redo their challenges.'};
+  return {t:'Keep Practising', e:'📚', m:'These ideas take practice. Go back through the stages listed below, and try the challenges again without hints.'};
+}
+function renderResults(lvl){
+  const L=levelStages(lvl);
+  const rows=L.map(s=>({s, ...scoreStage(s)}));
+  const total=Math.round(rows.reduce((a,r)=>a+r.score,0)/rows.length);
+  const g=grade(total,lvl);
+  const qTotal=rows.reduce((a,r)=>a+r.n,0), qFirst=rows.reduce((a,r)=>a+r.firstTry,0);
+  const solo=rows.filter(r=>r.st.code && !r.st.sol).length;
+  const hints=rows.filter(r=>r.st.hint).length;
+  const runs=rows.reduce((a,r)=>a+(r.st.runs||0),0);
+  const weak=rows.filter(r=>r.score<70);
+  const strong=rows.filter(r=>r.score>=90).map(r=>r.s.short);
+  const C=2*Math.PI*54, col = total>=75?'var(--good)': total>=60?'var(--yellow)':'var(--accent)';
+  const undone=rows.filter(r=>!r.done).length;
+  const nextCard = lvl==='basic'
+    ? `<section class="card"><h2><span class="tag">NEXT</span>Ready for more?</h2><p>The <b>advanced section</b> covers find/some/every, slice vs splice, sorting, copies vs references, arrays of objects, 2D grids and method chaining, ending with a leaderboard challenge.</p><div class="controls"><button class="btn accent" data-go="${STAGES.findIndex(s=>s.level==='adv')}">Start the advanced section →</button></div></section>`
+    : `<section class="card"><h2><span class="tag">NEXT</span>Where to go from here</h2><p>Next, try <code>reduce</code> (folding an array into one value), <code>flat</code>/<code>flatMap</code>, <code>Array.from</code>, and the non-mutating <code>toSorted</code>/<code>toSpliced</code>. Then practise on real API data.</p></section>`;
+  $('#main').innerHTML=`
+    <div class="eyebrow">${LEVELS[lvl].title} complete</div>
+    <h1>Your ${LEVELS[lvl].name.toLowerCase()} results</h1>
+    <p class="lead">How you did across the ${L.length} ${lvl==='adv'?'advanced':'beginner'} stages. You score higher for answering quizzes right first time and for solving challenges without hints or the solution.</p>
+    ${undone?`<div class="tip">You finished the final challenge but skipped ${undone} stage${undone>1?'s':''}. Those count as 0 until you complete them.</div>`:''}
+    <section class="card result-hero">
+      <svg width="140" height="140" viewBox="0 0 140 140" aria-label="Overall score ${total}%">
+        <circle cx="70" cy="70" r="54" fill="none" stroke="var(--line)" stroke-width="14"/>
+        <circle cx="70" cy="70" r="54" fill="none" stroke="${col}" stroke-width="14" stroke-linecap="round"
+          stroke-dasharray="${C}" stroke-dashoffset="${C*(1-total/100)}" transform="rotate(-90 70 70)"/>
+        <text x="70" y="78" text-anchor="middle" font-family="Space Grotesk" font-weight="700" font-size="32" fill="var(--ink)">${total}%</text>
+      </svg>
+      <div>
+        <div class="grade">${g.e} ${g.t}</div>
+        <p style="margin:6px 0 0;color:#3b372f">${g.m}</p>
+        ${strong.length?`<p style="margin:10px 0 0;font-size:14.5px"><b>Strongest:</b> ${strong.join(', ')}</p>`:''}
+      </div>
+    </section>
+    <div class="stats">
+      <div class="stat"><div class="num">${qFirst}/${qTotal}</div><div class="lab">quiz questions right first try</div></div>
+      <div class="stat"><div class="num">${solo}/${L.length}</div><div class="lab">challenges solved without the solution</div></div>
+      <div class="stat"><div class="num">${hints}</div><div class="lab">hints used</div></div>
+      <div class="stat"><div class="num">${runs}</div><div class="lab">code runs in total</div></div>
+    </div>
+    <section class="card">
+      <h2><span class="tag">BREAKDOWN</span>Stage by stage</h2>
+      <div class="rtable">
+        <div class="rrow head"><span>Stage</span><span>Quiz</span><span>Code challenge</span><span>Score</span></div>
+        ${rows.map((r,i)=>`
+        <div class="rrow">
+          <span><b>${i+1}.</b> ${r.s.short}</span>
+          <span>${r.firstTry}/${r.n} first try</span>
+          <span class="muted">${r.codeNote}</span>
+          <span class="sc"><span class="minibar"><i style="width:${r.score}%;background:${r.score>=90?'var(--good)':r.score>=70?'var(--yellow)':'var(--accent)'}"></i></span><b>${r.score}</b></span>
+        </div>`).join('')}
+      </div>
+      <p class="muted" style="font-size:13px;margin:12px 0 0">Each stage is worth 100: 50 for the quiz (full marks for right first time, half after one wrong answer) and 50 for the code challenge (−10 for a hint, −5 per extra run, capped at −20; 10 if you viewed the solution first).</p>
+    </section>
+    ${weak.length?`<section class="card"><h2><span class="tag">REVIEW</span>Worth another look</h2>
+      <p>You scored under 70 on these stages. Reopen them and try the challenge again from scratch (use “Reset code”).</p>
+      <div class="controls">${weak.map(r=>`<button class="btn ghost" data-go="${STAGES.indexOf(r.s)}">${L.indexOf(r.s)+1}. ${r.s.short} (${r.score})</button>`).join('')}</div></section>`:''}
+    ${nextCard}
+    <div class="controls"><button class="btn accent" id="retake">Retake the ${LEVELS[lvl].name.toLowerCase()} ${lvl==='adv'?'section':'course'}</button><button class="btn ghost" data-go="${STAGES.indexOf(L[0])}">Back to stage 1</button></div>`;
+  $('#main').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(+b.dataset.go));
+  $('#retake').onclick=()=>{
+    const b=$('#retake');
+    if(b.dataset.confirm){ if(lvl==='basic' && advUnlocked()) progress._skip=true; L.forEach(s=>delete progress[s.id]); save(); go(STAGES.indexOf(L[0])); }
+    else { b.dataset.confirm='1'; b.textContent=`Click again to clear ${LEVELS[lvl].name.toLowerCase()} progress and retake`; }
+  };
+  updateNav();
+}
+
+function friendly(err){
+  if(/Unexpected end of input/.test(err)) return err + ' (you may be missing a closing ] ) or })';
+  if(/Unexpected token/.test(err)) return err + ' (check for a missing comma, quote, or bracket)';
+  if(/is not defined/.test(err)) return err + ' (check the spelling; JavaScript is case-sensitive)';
+  if(/Assignment to constant/.test(err)) return err + ' (a const variable can\'t be reassigned. Use let, or change the array\'s contents instead)';
+  if(/Missing initializer/.test(err)) return err + ' (a const needs a value after the = sign)';
+  return err;
+}
+
+function confetti(){
+  const c=$('#confetti'); const cols=['#e2603a','#f3c64b','#2f8f5b','#2c5fd6','#1d1b16'];
+  for(let i=0;i<60;i++){ const p=document.createElement('i'); p.style.left=Math.random()*100+'vw'; p.style.background=cols[i%cols.length]; p.style.animationDelay=Math.random()*.4+'s'; p.style.transform=`rotate(${Math.random()*360}deg)`; c.append(p); setTimeout(()=>p.remove(),2400); }
+}
+
+$('#menuBtn').onclick=()=>{ const a=$('#side'); a.classList.toggle('open'); $('#menuBtn').textContent=a.classList.contains('open')?'Hide stages':'Show stages'; };
+$('#resetBtn').onclick=()=>{
+  const b=$('#resetBtn');
+  if(b.dataset.confirm){ progress={}; save(); delete b.dataset.confirm; b.textContent='Reset my progress'; go(0); }
+  else { b.dataset.confirm='1'; b.textContent='Click again to confirm reset'; setTimeout(()=>{ delete b.dataset.confirm; b.textContent='Reset my progress'; },3000); }
+};
+
+// resume where the learner left off
+(()=>{
+  const b=STAGES.findIndex(s=>s.level==='basic' && !isDone(s));
+  const a=STAGES.findIndex(s=>s.level==='adv' && !isDone(s));
+  if(advStarted() && advUnlocked()) current = a>=0 ? a : 'results-adv';
+  else if(b>=0) current = b;
+  else current = 'results-basic';
+})();
+render();
+</script>
+</body>
+</html>

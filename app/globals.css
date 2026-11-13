@@ -1,26 +1,164 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
+/*
+  Design tokens taken 1:1 from docs/Academy.html.
+  The shadcn semantic tokens (primary, muted, border...) are mapped onto the
+  reference palette so shadcn components pick up the Array Academy look.
+  The course also needs a few extra colours (brand, good, bad, info,
+  highlight, code) that shadcn has no slot for.
+*/
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Reference palette */
+  --paper: #fffdf8;
+  --ink: #1d1b16;
+  --line: #e3ddcf;
+  --brand: #e2603a;
+  --brand-soft: #fbe3d8;
+  --brand-ink: #8a2f14;
+  --good: #2f8f5b;
+  --good-soft: #dcf1e4;
+  --bad: #c23b3b;
+  --bad-soft: #f8dddd;
+  --info: #2c5fd6;
+  --info-soft: #dfe7fb;
+  --code: #1f1d1a;
+  --code-ink: #f2ede1;
+  --highlight: #f3c64b;
+  --highlight-soft: #fdf6dc;
+  --body-ink: #3b372f;
+
+  /* shadcn semantic tokens */
+  --background: #f6f3ec;
+  --foreground: var(--ink);
+  --card: var(--paper);
+  --card-foreground: var(--ink);
+  --popover: var(--paper);
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: #ffffff;
+  --secondary: #f6f3ec;
+  --secondary-foreground: var(--ink);
+  --muted: #f6f3ec;
+  --muted-foreground: #6b665b;
+  --accent: #f6f3ec;
+  --accent-foreground: var(--ink);
+  --destructive: var(--bad);
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--ink);
+  --radius: 0.625rem;
 }
 
 @theme inline {
+  --font-sans: var(--font-space-grotesk), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+  --font-heading: var(--font-sans);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-line: var(--line);
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-ink: var(--brand-ink);
+  --color-good: var(--good);
+  --color-good-soft: var(--good-soft);
+  --color-bad: var(--bad);
+  --color-bad-soft: var(--bad-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-code: var(--code);
+  --color-code-ink: var(--code-ink);
+  --color-highlight: var(--highlight);
+  --color-highlight-soft: var(--highlight-soft);
+  --color-body-ink: var(--body-ink);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+
+  --animate-pop: pop 0.28s ease;
+  --animate-fall: fall 1.8s ease-in forwards;
+
+  @keyframes pop {
+    from {
+      transform: scale(0.6);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  @keyframes fall {
+    to {
+      transform: translateY(110vh) rotate(720deg);
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-size: 16px;
+    line-height: 1.55;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  /* Inline code chips inside lesson text, quiz questions and tasks. */
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    background: var(--brand-soft);
+    color: var(--brand-ink);
+    padding: 1px 6px;
+    border-radius: 5px;
+  }
+}
+
+/*
+  Lesson, quiz and task text is authored as plain <p>/<ol> elements, so their
+  spacing lives here. Being in the components layer means any utility class on
+  an individual element still wins.
+*/
+@layer components {
+  .lesson-card p {
+    margin: 0 0 12px;
+  }
+  .task-box ol {
+    margin: 6px 0 0;
+    padding-left: 20px;
+    list-style: decimal;
+  }
 }
